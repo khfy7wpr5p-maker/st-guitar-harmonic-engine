@@ -18,6 +18,11 @@ from .context import (
     analyze_measure_in_context,
     resolve_frame_in_context,
 )
+from .explainability import (
+    FrameExplainability,
+    MeasureExplainability,
+    build_measure_explainability,
+)
 from .frames import HarmonicFrame, build_harmonic_frames
 from .inversion import BassAnalysis, Inversion, analyze_bass_and_inversion
 from .models import Measure, NoteEvent, RationalBeat, TieState, TimeSignature
@@ -38,11 +43,13 @@ __all__ = [
     "ContextCandidate",
     "ContextResolution",
     "FrameAnalysis",
+    "FrameExplainability",
     "HarmonicFrame",
     "HarmonicRole",
     "IncompleteChordCandidate",
     "Inversion",
     "Measure",
+    "MeasureExplainability",
     "NCTKind",
     "NCTObservation",
     "NoteEvent",
@@ -60,6 +67,7 @@ __all__ = [
     "analyze_measure_exact",
     "analyze_measure_in_context",
     "build_harmonic_frames",
+    "build_measure_explainability",
     "detect_stepwise_ncts",
     "generate_exact_chord_candidates",
     "generate_fifth_omission_candidates",
