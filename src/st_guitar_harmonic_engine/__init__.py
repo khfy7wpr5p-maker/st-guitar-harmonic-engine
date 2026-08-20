@@ -23,6 +23,14 @@ from .explainability import (
     MeasureExplainability,
     build_measure_explainability,
 )
+from .explainability_schema import (
+    EXPLAINABILITY_SCHEMA_NAME,
+    EXPLAINABILITY_SCHEMA_V1,
+    EXPLAINABILITY_SCHEMA_VERSION,
+    is_explainability_payload_compatible,
+    serialize_measure_explainability,
+    validate_explainability_payload,
+)
 from .frames import HarmonicFrame, build_harmonic_frames
 from .inversion import BassAnalysis, Inversion, analyze_bass_and_inversion
 from .models import Measure, NoteEvent, RationalBeat, TieState, TimeSignature
@@ -42,6 +50,9 @@ __all__ = [
     "ChordQuality",
     "ContextCandidate",
     "ContextResolution",
+    "EXPLAINABILITY_SCHEMA_NAME",
+    "EXPLAINABILITY_SCHEMA_V1",
+    "EXPLAINABILITY_SCHEMA_VERSION",
     "FrameAnalysis",
     "FrameExplainability",
     "HarmonicFrame",
@@ -71,5 +82,8 @@ __all__ = [
     "detect_stepwise_ncts",
     "generate_exact_chord_candidates",
     "generate_fifth_omission_candidates",
+    "is_explainability_payload_compatible",
     "resolve_frame_in_context",
+    "serialize_measure_explainability",
+    "validate_explainability_payload",
 ]

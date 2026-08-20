@@ -71,13 +71,22 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - exact matches always outrank incomplete inference,
 - these evidence layers do not mutate or override exact/context resolver results.
 
-### Stage 1-G — explainability-only evidence aggregation
+### Stage 1-G — explainability-only evidence aggregation ✅
 
 - frame-level reports expose NCT observations and fifth-omission candidates,
 - explainability output contains no authoritative decision or selection field,
 - exact `UNIQUE/AMBIGUOUS/NO_MATCH` results remain owned by the exact analyzer,
 - tonal-context `RESOLVED/AMBIGUOUS/NO_MATCH` results remain owned by the context resolver,
 - building an explainability report cannot mutate or override either decision path.
+
+### Stage 1-H — versioned explainability schema contract
+
+- explainability JSON-compatible output is identified by schema name and version `1.0`,
+- rational musical time remains exact as `{numerator, denominator}` rather than float,
+- required v1 fields for frames, NCT evidence, and fifth-omission evidence are frozen,
+- `1.x` changes are additive-only and unknown additive fields are tolerated by v1 readers,
+- removing or changing required v1 fields requires a new major schema version,
+- decision-bearing fields remain forbidden from the explainability schema.
 
 Suspensions, anticipations, appoggiaturas, pedal reinterpretation, missing root/third/seventh,
 altered or diminished-fifth omissions, extensions, modulation, and progression probabilities
