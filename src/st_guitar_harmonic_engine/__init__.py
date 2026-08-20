@@ -46,6 +46,7 @@ from .ornamental_nct import (
     OrnamentalNCTObservation,
     detect_ornamental_ncts,
 )
+from .pedal import PedalFrameEvidence, PedalObservation, detect_pedals
 from .spelling import PitchStep, WrittenPitch
 from .structural import (
     BoundaryDisposition,
@@ -91,6 +92,8 @@ __all__ = [
     "OmissionKind",
     "OrnamentalNCTKind",
     "OrnamentalNCTObservation",
+    "PedalFrameEvidence",
+    "PedalObservation",
     "PitchStep",
     "RationalBeat",
     "ResolutionStatus",
@@ -112,6 +115,7 @@ __all__ = [
     "build_measure_explainability",
     "detect_anticipations",
     "detect_ornamental_ncts",
+    "detect_pedals",
     "detect_stepwise_ncts",
     "detect_suspensions",
     "generate_exact_chord_candidates",
