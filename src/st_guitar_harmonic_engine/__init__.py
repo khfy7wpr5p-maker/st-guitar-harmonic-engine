@@ -55,6 +55,7 @@ from .structural_explainability import (
     serialize_structural_explainability,
     validate_structural_explainability_payload,
 )
+from .suspension import SuspensionObservation, detect_suspensions
 
 __all__ = [
     "AnalysisStatus",
@@ -88,6 +89,7 @@ __all__ = [
     "StructuralSegment",
     "StructuralSegmentation",
     "StructuralTransition",
+    "SuspensionObservation",
     "TieState",
     "TimeSignature",
     "TonalContext",
@@ -100,6 +102,7 @@ __all__ = [
     "build_harmonic_frames",
     "build_measure_explainability",
     "detect_stepwise_ncts",
+    "detect_suspensions",
     "generate_exact_chord_candidates",
     "generate_fifth_omission_candidates",
     "is_explainability_payload_compatible",
