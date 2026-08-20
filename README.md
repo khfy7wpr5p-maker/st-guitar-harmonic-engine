@@ -120,7 +120,7 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - the same staff/voice and MIDI pitch must continue into the arrival frame by one spanning event or an explicit tie chain,
 - unrelated rearticulation, silent gaps, ambiguous anchors, and multi-foreign-tone cases are rejected rather than guessed.
 
-### Stage 2-D — conservative appoggiatura / escape-tone evidence
+### Stage 2-D — conservative appoggiatura / escape-tone evidence ✅
 
 - ornamental NCT detection is evidence-only and cannot alter any existing decision path,
 - previous and following frames must be contiguous and carry the same unique exact harmony,
@@ -131,9 +131,19 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - escape tone requires semitone/whole-tone approach plus opposite-direction leap-out,
 - changed/ambiguous anchors, multiple foreign tones, ties, and unsupported motion remain unresolved.
 
-Pedal reinterpretation, missing root/third/seventh, altered or diminished-fifth omissions,
-extensions, modulation, beat-strength weighting, cadential inference, progression probabilities,
-confidence ranking, and AI boundary models remain deliberately unresolved.
+### Stage 2-E — conservative sustained-pedal evidence ✅
+
+- pedal detection is evidence-only and cannot alter exact, contextual, structural, or prior NCT decisions,
+- one physical `NoteEvent` must remain active across at least three consecutive, contiguous harmonic frames,
+- explicit tie chains and rearticulated notes are not merged into one pedal at this stage,
+- the candidate event is removed hypothetically and every reduced frame must resolve to one unique exact harmony,
+- the underlying harmony must change across the sustained span,
+- the sustained pitch must be a chord tone in at least one underlying harmony and a non-chord tone in at least one other,
+- unchanged harmony, all-chord-tone common tones, all-foreign drones, silent/reduced-empty cases, and ambiguous reduced harmony are rejected rather than guessed.
+
+Missing root/third/seventh, altered or diminished-fifth omissions, extensions, modulation,
+beat-strength weighting, cadential inference, progression probabilities, confidence ranking,
+and AI boundary models remain deliberately unresolved.
 
 ## Verification
 
