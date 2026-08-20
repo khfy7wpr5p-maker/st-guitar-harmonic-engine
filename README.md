@@ -99,7 +99,7 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - existing exact/context decision paths are not mutated by structural segmentation,
 - schema `1.0` serialization remains unchanged by default; optional structural evidence is an additive `1.1` extension with no authoritative decision fields.
 
-### Stage 2-B — conservative suspension evidence
+### Stage 2-B — conservative suspension evidence ✅
 
 - suspension detection is evidence-only and does not alter structural or harmonic decisions,
 - preparation and resolution frames must be temporally contiguous and uniquely exact,
@@ -109,7 +109,18 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - resolution must occur in the same staff/voice, to the missing target pitch class, downward by semitone or whole tone,
 - ambiguous anchors, unprepared tones, silent gaps, upward motion, and leaps are rejected rather than guessed.
 
-Anticipations, appoggiaturas, escape tones, pedal reinterpretation, missing root/third/seventh,
+### Stage 2-C — conservative anticipation evidence
+
+- anticipation detection is evidence-only and cannot alter harmonic or structural decisions,
+- source and arrival frames must be temporally contiguous and uniquely exact,
+- source and arrival harmonies must differ,
+- the middle frame must replace exactly one source-harmony pitch class with one future chord tone,
+- the anticipated tone must belong to the following harmony but not the source harmony,
+- exactly one event may carry the anticipated pitch and it must begin at the middle-frame boundary,
+- the same staff/voice and MIDI pitch must continue into the arrival frame by one spanning event or an explicit tie chain,
+- unrelated rearticulation, silent gaps, ambiguous anchors, and multi-foreign-tone cases are rejected rather than guessed.
+
+Appoggiaturas, escape tones, pedal reinterpretation, missing root/third/seventh,
 altered or diminished-fifth omissions, extensions, modulation, beat-strength weighting,
 cadential inference, progression probabilities, confidence ranking, and AI boundary models
 remain deliberately unresolved.

@@ -7,6 +7,7 @@ from .analysis import (
     analyze_frame_exact,
     analyze_measure_exact,
 )
+from .anticipation import AnticipationObservation, detect_anticipations
 from .chords import ChordCandidate, ChordQuality, generate_exact_chord_candidates
 from .context import (
     ContextCandidate,
@@ -59,6 +60,7 @@ from .suspension import SuspensionObservation, detect_suspensions
 
 __all__ = [
     "AnalysisStatus",
+    "AnticipationObservation",
     "BassAnalysis",
     "BoundaryDisposition",
     "BoundaryReason",
@@ -101,6 +103,7 @@ __all__ = [
     "analyze_measure_in_context",
     "build_harmonic_frames",
     "build_measure_explainability",
+    "detect_anticipations",
     "detect_stepwise_ncts",
     "detect_suspensions",
     "generate_exact_chord_candidates",
