@@ -113,7 +113,7 @@ def detect_ornamental_ncts(measure: Measure) -> tuple[OrnamentalNCTObservation, 
     - exactly one event carries that foreign pitch class,
     - the ornament starts and ends exactly at the middle-frame boundaries,
     - the same staff/voice is unique on both neighboring frames,
-    - the following voice lands on the missing anchor pitch class,
+    - the following voice lands on a structural pitch class of the anchor harmony,
     - appoggiatura = leap in + opposite-direction step out,
     - escape tone = step in + opposite-direction leap out.
     """
@@ -146,7 +146,6 @@ def detect_ornamental_ncts(measure: Measure) -> tuple[OrnamentalNCTObservation, 
         if len(foreign_pcs) != 1 or len(missing_pcs) != 1:
             continue
         foreign_pc = next(iter(foreign_pcs))
-        missing_pc = next(iter(missing_pcs))
 
         foreign_events = tuple(
             event for event in middle.events if event.midi_pitch % 12 == foreign_pc
@@ -169,7 +168,7 @@ def detect_ornamental_ncts(measure: Measure) -> tuple[OrnamentalNCTObservation, 
             continue
         if following_event.onset.fraction != following.start.fraction:
             continue
-        if following_event.midi_pitch % 12 != missing_pc:
+        if following_event.midi_pitch % 12 not in anchor_pcs:
             continue
 
         approach = event.midi_pitch - previous_event.midi_pitch
