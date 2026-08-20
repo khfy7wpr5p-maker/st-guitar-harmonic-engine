@@ -60,7 +60,13 @@ class SuspendedChordEvidenceTests(unittest.TestCase):
 
     def test_non_triad_cardinality_is_rejected(self):
         self.assertEqual(generate_suspended_chord_candidates(frame(48, 50)), ())
-        self.assertEqual(generate_suspended_chord_candidates(frame(48, 50, 55, 60)), ())
+        self.assertEqual(generate_suspended_chord_candidates(frame(48, 49, 50, 55)), ())
+
+    def test_octave_duplicates_do_not_change_suspended_pitch_set(self):
+        self.assertEqual(
+            generate_suspended_chord_candidates(frame(48, 50, 55, 60)),
+            generate_suspended_chord_candidates(frame(48, 50, 55)),
+        )
 
     def test_suspended_generator_is_deterministic_and_non_mutating(self):
         target = frame(48, 50, 55)
