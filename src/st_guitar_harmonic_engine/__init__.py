@@ -21,6 +21,12 @@ from .context import (
 from .frames import HarmonicFrame, build_harmonic_frames
 from .inversion import BassAnalysis, Inversion, analyze_bass_and_inversion
 from .models import Measure, NoteEvent, RationalBeat, TieState, TimeSignature
+from .nct import NCTKind, NCTObservation, detect_stepwise_ncts
+from .omissions import (
+    IncompleteChordCandidate,
+    OmissionKind,
+    generate_fifth_omission_candidates,
+)
 from .spelling import PitchStep, WrittenPitch
 
 __all__ = [
@@ -34,9 +40,13 @@ __all__ = [
     "FrameAnalysis",
     "HarmonicFrame",
     "HarmonicRole",
+    "IncompleteChordCandidate",
     "Inversion",
     "Measure",
+    "NCTKind",
+    "NCTObservation",
     "NoteEvent",
+    "OmissionKind",
     "PitchStep",
     "RationalBeat",
     "ResolutionStatus",
@@ -50,6 +60,8 @@ __all__ = [
     "analyze_measure_exact",
     "analyze_measure_in_context",
     "build_harmonic_frames",
+    "detect_stepwise_ncts",
     "generate_exact_chord_candidates",
+    "generate_fifth_omission_candidates",
     "resolve_frame_in_context",
 ]
