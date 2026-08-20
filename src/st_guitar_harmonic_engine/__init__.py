@@ -32,6 +32,7 @@ from .explainability_schema import (
     serialize_measure_explainability,
     validate_explainability_payload,
 )
+from .extensions import ExtensionCandidate, ExtensionKind, generate_extension_candidates
 from .frames import HarmonicFrame, build_harmonic_frames
 from .inversion import BassAnalysis, Inversion, analyze_bass_and_inversion
 from .models import Measure, NoteEvent, RationalBeat, TieState, TimeSignature
@@ -79,6 +80,8 @@ __all__ = [
     "EXPLAINABILITY_SCHEMA_NAME",
     "EXPLAINABILITY_SCHEMA_V1",
     "EXPLAINABILITY_SCHEMA_VERSION",
+    "ExtensionCandidate",
+    "ExtensionKind",
     "FrameAnalysis",
     "FrameExplainability",
     "HarmonicFrame",
@@ -120,6 +123,7 @@ __all__ = [
     "detect_stepwise_ncts",
     "detect_suspensions",
     "generate_exact_chord_candidates",
+    "generate_extension_candidates",
     "generate_fifth_omission_candidates",
     "generate_incomplete_chord_candidates",
     "is_explainability_payload_compatible",

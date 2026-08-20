@@ -150,9 +150,19 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - incomplete ambiguity is preserved by returning all matching candidates without ranking,
 - diminished, augmented, half-diminished, diminished-seventh, altered, extension, or multi-tone omissions are still rejected.
 
-Altered or diminished-fifth omissions, extensions, modulation, beat-strength weighting,
-cadential inference, progression probabilities, confidence ranking, and AI boundary models
-remain deliberately unresolved.
+### Stage 2-G — conservative natural-extension evidence ✅
+
+- extension detection is evidence-only and does not expand the authoritative exact chord vocabulary,
+- the complete supported base chord must be present; extension evidence is never combined with an omission,
+- exactly one additional pitch class is permitted,
+- natural 9th, 11th, and 13th are represented as structured evidence rather than final chord-symbol text,
+- existing exact basic chord matches take precedence and suppress extension inference,
+- all valid base/extension interpretations are preserved without ranking,
+- altered tensions such as b9, #9, #11, and b13 remain unsupported here.
+
+Altered tensions, suspended-chord candidates, altered or diminished-fifth omissions, modulation,
+beat-strength weighting, cadential inference, progression probabilities, confidence ranking,
+and AI boundary models remain deliberately unresolved.
 
 ## Verification
 
