@@ -11,7 +11,7 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - explicit tie state,
 - no AI/model/network dependency.
 
-### Stage 0-B — measure and meter contracts
+### Stage 0-B — measure and meter contracts ✅
 
 - all timing is explicitly defined in quarter-note units,
 - validated time signatures with exact nominal measure length,
@@ -19,8 +19,15 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - event-to-measure ownership and overflow validation,
 - canonical event ordering for repeatable downstream analysis.
 
-The engine still does **not** infer chords. Harmony inference begins only after
-its symbolic boundaries are versioned and regression-tested.
+### Stage 0-C — polyphonic harmonic frames
+
+- exact frame boundaries from note onsets/ends,
+- active-note sets remain constant inside each frame,
+- silent gaps are not fabricated as harmony,
+- canonical pitch-class evidence is exposed without naming chords.
+
+The engine still does **not** infer chord labels; Stage 0-C only produces trusted
+simultaneous-note evidence for later candidate generation.
 
 ## Verification
 
