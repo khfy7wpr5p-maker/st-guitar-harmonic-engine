@@ -19,15 +19,22 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - event-to-measure ownership and overflow validation,
 - canonical event ordering for repeatable downstream analysis.
 
-### Stage 0-C — polyphonic harmonic frames
+### Stage 0-C — polyphonic harmonic frames ✅
 
 - exact frame boundaries from note onsets/ends,
 - active-note sets remain constant inside each frame,
 - silent gaps are not fabricated as harmony,
 - canonical pitch-class evidence is exposed without naming chords.
 
-The engine still does **not** infer chord labels; Stage 0-C only produces trusted
-simultaneous-note evidence for later candidate generation.
+### Stage 1-A — exact chord candidates
+
+- deterministic basic triad/seventh templates,
+- exact pitch-class matching only,
+- octave duplicates do not distort the candidate set,
+- symmetric sonorities retain all valid roots instead of forcing a guess.
+
+Candidates are evidence, not final chord decisions. Non-chord tones, omissions,
+extensions, inversion, key context, and ranking remain deliberately unresolved.
 
 ## Verification
 
