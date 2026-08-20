@@ -54,7 +54,7 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - guitar octave transposition is never guessed from MIDI alone,
 - later key/context logic can use enharmonic evidence without changing exact analysis.
 
-### Stage 1-E — tonal context resolver
+### Stage 1-E — tonal context resolver ✅
 
 - caller supplies explicit tonic pitch class and major/minor mode,
 - exact candidates are annotated with conservative scale-degree/role evidence,
@@ -62,8 +62,18 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - unsupported or chromatic evidence is preserved rather than rejected or guessed,
 - minor-key major V and raised-leading-tone diminished harmony are supported explicitly.
 
-This stage still does not infer non-chord tones, omissions, extensions, modulation,
-or progression probabilities. Previous/next-chord context remains a later stage.
+### Stage 1-F — conservative NCT and omission evidence
+
+- passing and neighbor tones require the same unique exact chord on both sides,
+- the middle frame may add exactly one pitch class and must show stepwise motion in one voice,
+- incomplete-chord inference is limited to an omitted perfect fifth,
+- only major/minor triads and major/minor/dominant sevenths are eligible for fifth omission,
+- exact matches always outrank incomplete inference,
+- these evidence layers do not mutate or override exact/context resolver results.
+
+Suspensions, anticipations, appoggiaturas, pedal reinterpretation, missing root/third/seventh,
+altered or diminished-fifth omissions, extensions, modulation, and progression probabilities
+remain deliberately unresolved.
 
 ## Verification
 
