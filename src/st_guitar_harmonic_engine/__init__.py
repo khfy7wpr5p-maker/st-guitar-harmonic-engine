@@ -41,6 +41,11 @@ from .omissions import (
     OmissionKind,
     generate_fifth_omission_candidates,
 )
+from .ornamental_nct import (
+    OrnamentalNCTKind,
+    OrnamentalNCTObservation,
+    detect_ornamental_ncts,
+)
 from .spelling import PitchStep, WrittenPitch
 from .structural import (
     BoundaryDisposition,
@@ -84,6 +89,8 @@ __all__ = [
     "NCTObservation",
     "NoteEvent",
     "OmissionKind",
+    "OrnamentalNCTKind",
+    "OrnamentalNCTObservation",
     "PitchStep",
     "RationalBeat",
     "ResolutionStatus",
@@ -104,6 +111,7 @@ __all__ = [
     "build_harmonic_frames",
     "build_measure_explainability",
     "detect_anticipations",
+    "detect_ornamental_ncts",
     "detect_stepwise_ncts",
     "detect_suspensions",
     "generate_exact_chord_candidates",
