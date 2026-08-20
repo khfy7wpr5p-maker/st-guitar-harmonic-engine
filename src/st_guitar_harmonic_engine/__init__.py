@@ -41,10 +41,26 @@ from .omissions import (
     generate_fifth_omission_candidates,
 )
 from .spelling import PitchStep, WrittenPitch
+from .structural import (
+    BoundaryDisposition,
+    BoundaryReason,
+    StructuralSegment,
+    StructuralSegmentation,
+    StructuralTransition,
+    segment_measure_structurally,
+)
+from .structural_explainability import (
+    STRUCTURAL_EXPLAINABILITY_SCHEMA_VERSION,
+    is_structural_explainability_payload_compatible,
+    serialize_structural_explainability,
+    validate_structural_explainability_payload,
+)
 
 __all__ = [
     "AnalysisStatus",
     "BassAnalysis",
+    "BoundaryDisposition",
+    "BoundaryReason",
     "CandidateAnalysis",
     "ChordCandidate",
     "ChordQuality",
@@ -68,6 +84,10 @@ __all__ = [
     "PitchStep",
     "RationalBeat",
     "ResolutionStatus",
+    "STRUCTURAL_EXPLAINABILITY_SCHEMA_VERSION",
+    "StructuralSegment",
+    "StructuralSegmentation",
+    "StructuralTransition",
     "TieState",
     "TimeSignature",
     "TonalContext",
@@ -83,7 +103,11 @@ __all__ = [
     "generate_exact_chord_candidates",
     "generate_fifth_omission_candidates",
     "is_explainability_payload_compatible",
+    "is_structural_explainability_payload_compatible",
     "resolve_frame_in_context",
+    "segment_measure_structurally",
     "serialize_measure_explainability",
+    "serialize_structural_explainability",
     "validate_explainability_payload",
+    "validate_structural_explainability_payload",
 ]

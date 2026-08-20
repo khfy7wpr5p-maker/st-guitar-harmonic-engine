@@ -79,7 +79,7 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - tonal-context `RESOLVED/AMBIGUOUS/NO_MATCH` results remain owned by the context resolver,
 - building an explainability report cannot mutate or override either decision path.
 
-### Stage 1-H — versioned explainability schema contract
+### Stage 1-H — versioned explainability schema contract ✅
 
 - explainability JSON-compatible output is identified by schema name and version `1.0`,
 - rational musical time remains exact as `{numerator, denominator}` rather than float,
@@ -88,8 +88,20 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - removing or changing required v1 fields requires a new major schema version,
 - decision-bearing fields remain forbidden from the explainability schema.
 
+### Stage 2-A — harmonic boundary / structural segmentation
+
+- canonical frame boundaries are candidate transition points, not automatic harmonic boundaries,
+- fixed rule priority distinguishes `BOUNDARY`, `CONTINUATION`, and `UNRESOLVED`,
+- silence and different unique exact harmonies create boundaries,
+- verified passing/neighbor tones and one exact anchor plus one uniquely matching missing-fifth frame may continue a segment,
+- ambiguous or insufficient evidence is never silently merged; `UNRESOLVED` cuts the segment,
+- inversion, octave, voice, or staff changes do not create a boundary by themselves,
+- existing exact/context decision paths are not mutated by structural segmentation,
+- schema `1.0` serialization remains unchanged by default; optional structural evidence is an additive `1.1` extension with no authoritative decision fields.
+
 Suspensions, anticipations, appoggiaturas, pedal reinterpretation, missing root/third/seventh,
-altered or diminished-fifth omissions, extensions, modulation, and progression probabilities
+altered or diminished-fifth omissions, extensions, modulation, beat-strength weighting,
+cadential inference, progression probabilities, confidence ranking, and AI boundary models
 remain deliberately unresolved.
 
 ## Verification
