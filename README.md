@@ -33,15 +33,22 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - octave duplicates do not distort the candidate set,
 - symmetric sonorities retain all valid roots instead of forcing a guess.
 
-### Stage 1-B — bass and inversion
+### Stage 1-B — bass and inversion ✅
 
 - literal lowest sounding MIDI pitch is the bass evidence,
 - candidate-relative root/first/second/third inversion,
 - candidate/frame evidence mismatch is rejected,
 - no contextual reinterpretation of the bass is performed.
 
-Candidates and bass analysis are still evidence, not final harmony decisions.
-Non-chord tones, omissions, extensions, key context, and ranking remain unresolved.
+### Stage 1-C — exact analysis orchestration
+
+- frame → candidates → bass/inversion wired end-to-end,
+- deterministic `UNIQUE`, `AMBIGUOUS`, or `NO_MATCH` status,
+- ambiguity is preserved rather than silently resolved,
+- empty/silent measures return no fabricated result.
+
+This is still a structural exact-match engine. Non-chord tones, omissions,
+extensions, key context, enharmonic spelling, and ranking remain unresolved.
 
 ## Verification
 
