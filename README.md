@@ -2,23 +2,25 @@
 
 A safety-first symbolic harmony engine for polyphonic guitar scores.
 
-## Stage 0-A: deterministic core foundation
+## Current foundation
 
-The repository currently establishes only the trusted symbolic event boundary.
-It does **not** infer chords yet.
+### Stage 0-A — deterministic event core ✅
 
-### Current contract
-
-- exact musical timing via reduced rational values (no floating-point beat math),
+- exact timing with reduced rational values,
 - validated `NoteEvent` identifiers and MIDI pitch range,
 - explicit tie state,
-- deterministic event end calculation,
-- no network, model, training, or runtime service dependency.
+- no AI/model/network dependency.
 
-Later stages will add versioned score/measure contracts, harmonic frames, chord
-candidate generation, deterministic resolution, and optional specialist models.
-AI output will remain advisory to the final resolver rather than silently
-changing this core contract.
+### Stage 0-B — measure and meter contracts
+
+- all timing is explicitly defined in quarter-note units,
+- validated time signatures with exact nominal measure length,
+- explicit realized duration for pickup/irregular measures,
+- event-to-measure ownership and overflow validation,
+- canonical event ordering for repeatable downstream analysis.
+
+The engine still does **not** infer chords. Harmony inference begins only after
+its symbolic boundaries are versioned and regression-tested.
 
 ## Verification
 
