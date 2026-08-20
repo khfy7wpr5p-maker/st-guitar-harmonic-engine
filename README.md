@@ -26,15 +26,22 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - silent gaps are not fabricated as harmony,
 - canonical pitch-class evidence is exposed without naming chords.
 
-### Stage 1-A — exact chord candidates
+### Stage 1-A — exact chord candidates ✅
 
 - deterministic basic triad/seventh templates,
 - exact pitch-class matching only,
 - octave duplicates do not distort the candidate set,
 - symmetric sonorities retain all valid roots instead of forcing a guess.
 
-Candidates are evidence, not final chord decisions. Non-chord tones, omissions,
-extensions, inversion, key context, and ranking remain deliberately unresolved.
+### Stage 1-B — bass and inversion
+
+- literal lowest sounding MIDI pitch is the bass evidence,
+- candidate-relative root/first/second/third inversion,
+- candidate/frame evidence mismatch is rejected,
+- no contextual reinterpretation of the bass is performed.
+
+Candidates and bass analysis are still evidence, not final harmony decisions.
+Non-chord tones, omissions, extensions, key context, and ranking remain unresolved.
 
 ## Verification
 
