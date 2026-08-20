@@ -141,9 +141,18 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - the sustained pitch must be a chord tone in at least one underlying harmony and a non-chord tone in at least one other,
 - unchanged harmony, all-chord-tone common tones, all-foreign drones, silent/reduced-empty cases, and ambiguous reduced harmony are rejected rather than guessed.
 
-Missing root/third/seventh, altered or diminished-fifth omissions, extensions, modulation,
-beat-strength weighting, cadential inference, progression probabilities, confidence ranking,
-and AI boundary models remain deliberately unresolved.
+### Stage 2-F — broader one-tone omission evidence ✅
+
+- the Stage 1-F fifth-only API remains intact and deterministic,
+- a new evidence-only generator covers exactly one missing root, third, fifth, or seventh,
+- support remains limited to major/minor triads and major/minor/dominant sevenths,
+- exact chord matches suppress every incomplete interpretation,
+- incomplete ambiguity is preserved by returning all matching candidates without ranking,
+- diminished, augmented, half-diminished, diminished-seventh, altered, extension, or multi-tone omissions are still rejected.
+
+Altered or diminished-fifth omissions, extensions, modulation, beat-strength weighting,
+cadential inference, progression probabilities, confidence ranking, and AI boundary models
+remain deliberately unresolved.
 
 ## Verification
 

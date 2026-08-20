@@ -40,6 +40,7 @@ from .omissions import (
     IncompleteChordCandidate,
     OmissionKind,
     generate_fifth_omission_candidates,
+    generate_incomplete_chord_candidates,
 )
 from .ornamental_nct import (
     OrnamentalNCTKind,
@@ -120,6 +121,7 @@ __all__ = [
     "detect_suspensions",
     "generate_exact_chord_candidates",
     "generate_fifth_omission_candidates",
+    "generate_incomplete_chord_candidates",
     "is_explainability_payload_compatible",
     "is_structural_explainability_payload_compatible",
     "resolve_frame_in_context",

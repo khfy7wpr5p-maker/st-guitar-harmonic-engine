@@ -1,9 +1,9 @@
-"""Conservative incomplete-chord evidence for one omitted perfect fifth.
+"""Conservative incomplete-chord evidence for one omitted structural tone.
 
-This stage deliberately supports only omissions that do not define the chord's
-quality: the perfect fifth of major/minor triads and major/minor/dominant
-sevenths. Root, third, seventh, altered-fifth, diminished, augmented, and
-half-diminished omissions remain unresolved.
+The legacy fifth-only generator remains stable. Stage 2-F adds a broader,
+evidence-only generator for one missing root, third, fifth, or seventh in basic
+major/minor triads and major/minor/dominant sevenths. Exact matches always win;
+no incomplete candidate is authoritative or ranked.
 """
 
 from __future__ import annotations
@@ -16,21 +16,54 @@ from .frames import HarmonicFrame
 
 
 class OmissionKind(str, Enum):
+    ROOT = "root"
+    THIRD = "third"
     FIFTH = "fifth"
+    SEVENTH = "seventh"
 
 
-_TEMPLATES: tuple[tuple[ChordQuality, frozenset[int]], ...] = (
-    (ChordQuality.MAJOR, frozenset({0, 4, 7})),
-    (ChordQuality.MINOR, frozenset({0, 3, 7})),
-    (ChordQuality.DOMINANT_SEVENTH, frozenset({0, 4, 7, 10})),
-    (ChordQuality.MAJOR_SEVENTH, frozenset({0, 4, 7, 11})),
-    (ChordQuality.MINOR_SEVENTH, frozenset({0, 3, 7, 10})),
+_TEMPLATE_ROLES: tuple[tuple[ChordQuality, tuple[tuple[OmissionKind, int], ...]], ...] = (
+    (
+        ChordQuality.MAJOR,
+        ((OmissionKind.ROOT, 0), (OmissionKind.THIRD, 4), (OmissionKind.FIFTH, 7)),
+    ),
+    (
+        ChordQuality.MINOR,
+        ((OmissionKind.ROOT, 0), (OmissionKind.THIRD, 3), (OmissionKind.FIFTH, 7)),
+    ),
+    (
+        ChordQuality.DOMINANT_SEVENTH,
+        (
+            (OmissionKind.ROOT, 0),
+            (OmissionKind.THIRD, 4),
+            (OmissionKind.FIFTH, 7),
+            (OmissionKind.SEVENTH, 10),
+        ),
+    ),
+    (
+        ChordQuality.MAJOR_SEVENTH,
+        (
+            (OmissionKind.ROOT, 0),
+            (OmissionKind.THIRD, 4),
+            (OmissionKind.FIFTH, 7),
+            (OmissionKind.SEVENTH, 11),
+        ),
+    ),
+    (
+        ChordQuality.MINOR_SEVENTH,
+        (
+            (OmissionKind.ROOT, 0),
+            (OmissionKind.THIRD, 3),
+            (OmissionKind.FIFTH, 7),
+            (OmissionKind.SEVENTH, 10),
+        ),
+    ),
 )
 
 
 @dataclass(frozen=True, slots=True)
 class IncompleteChordCandidate:
-    """A basic chord candidate supported by all tones except its perfect fifth."""
+    """A basic chord candidate supported by all but one structural pitch class."""
 
     root_pc: int
     quality: ChordQuality
@@ -63,16 +96,10 @@ class IncompleteChordCandidate:
         return tuple(sorted((*self.observed_pitch_classes, self.omitted_pc)))
 
 
-def generate_fifth_omission_candidates(
+def _generate_candidates(
     frame: HarmonicFrame,
+    allowed_omissions: frozenset[OmissionKind],
 ) -> tuple[IncompleteChordCandidate, ...]:
-    """Return candidates whose only missing structural tone is a perfect fifth.
-
-    Exact chord matches always take precedence and suppress incomplete inference.
-    The function never infers a missing root, third, seventh, altered fifth, or
-    extension, and it preserves every valid candidate rather than ranking them.
-    """
-
     if not isinstance(frame, HarmonicFrame):
         raise TypeError("frame must be a HarmonicFrame")
     if generate_exact_chord_candidates(frame):
@@ -85,22 +112,64 @@ def generate_fifth_omission_candidates(
     canonical = tuple(sorted(observed))
     candidates: list[IncompleteChordCandidate] = []
     for root_pc in range(12):
-        for quality, intervals in _TEMPLATES:
-            if len(intervals) != len(observed) + 1:
+        for quality, roles in _TEMPLATE_ROLES:
+            if len(roles) != len(observed) + 1:
                 continue
-            full = frozenset((root_pc + interval) % 12 for interval in intervals)
-            omitted_pc = (root_pc + 7) % 12
-            if omitted_pc not in full:
-                continue
-            if full - {omitted_pc} != observed:
-                continue
-            candidates.append(
-                IncompleteChordCandidate(
-                    root_pc=root_pc,
-                    quality=quality,
-                    observed_pitch_classes=canonical,
-                    omitted_pc=omitted_pc,
+            full = frozenset((root_pc + interval) % 12 for _, interval in roles)
+            for omission, interval in roles:
+                if omission not in allowed_omissions:
+                    continue
+                omitted_pc = (root_pc + interval) % 12
+                if full - {omitted_pc} != observed:
+                    continue
+                candidates.append(
+                    IncompleteChordCandidate(
+                        root_pc=root_pc,
+                        quality=quality,
+                        observed_pitch_classes=canonical,
+                        omitted_pc=omitted_pc,
+                        omission=omission,
+                    )
                 )
-            )
 
     return tuple(candidates)
+
+
+def generate_fifth_omission_candidates(
+    frame: HarmonicFrame,
+) -> tuple[IncompleteChordCandidate, ...]:
+    """Return candidates whose only missing structural tone is a perfect fifth.
+
+    This is the Stage 1-F compatibility surface. Its behavior remains fifth-only,
+    exact matches suppress inference, and candidate ordering remains deterministic.
+    """
+
+    return _generate_candidates(frame, frozenset({OmissionKind.FIFTH}))
+
+
+def generate_incomplete_chord_candidates(
+    frame: HarmonicFrame,
+) -> tuple[IncompleteChordCandidate, ...]:
+    """Return all basic candidates missing exactly one supported structural tone.
+
+    Safety rules:
+    - exact chord matches suppress all incomplete inference,
+    - only major/minor triads and major/minor/dominant sevenths are considered,
+    - exactly one structural pitch class may be absent,
+    - root/third/fifth/seventh omissions are preserved as distinct evidence,
+    - diminished, augmented, half-diminished, diminished-seventh, altered, and
+      extension templates are deliberately excluded,
+    - every valid candidate is returned; this layer never ranks or selects one.
+    """
+
+    return _generate_candidates(
+        frame,
+        frozenset(
+            {
+                OmissionKind.ROOT,
+                OmissionKind.THIRD,
+                OmissionKind.FIFTH,
+                OmissionKind.SEVENTH,
+            }
+        ),
+    )
