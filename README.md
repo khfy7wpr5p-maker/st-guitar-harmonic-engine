@@ -160,9 +160,23 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - all valid base/extension interpretations are preserved without ranking,
 - altered tensions such as b9, #9, #11, and b13 remain unsupported here.
 
-Altered tensions, suspended-chord candidates, altered or diminished-fifth omissions, modulation,
-beat-strength weighting, cadential inference, progression probabilities, confidence ranking,
-and AI boundary models remain deliberately unresolved.
+### Stage 2-H — suspended-chord / altered-dominant evidence ✅
+
+- `sus2` and `sus4` remain evidence candidates outside the authoritative exact chord vocabulary,
+- symmetric suspended pitch sets preserve every valid root/kind interpretation instead of forcing one root,
+- altered tension evidence requires the complete dominant-seventh base plus exactly one extra pitch class,
+- only b9, #9, #11, and b13 are supported as structured alteration evidence,
+- natural extensions are not mislabeled as alterations,
+- omission+alteration and multiple-alteration combinations are rejected rather than guessed,
+- neither suspended nor altered candidates rank, select, or mutate exact/context/structural decisions.
+
+## Stage 2 boundary
+
+Stage 2 is closed at the evidence layer. Structural segmentation and the expanded NCT/chord-color evidence remain conservative and non-authoritative. Promotion of these candidates into final harmonic decisions requires a later, separately contracted resolver stage with explicit ambiguity/confidence gates.
+
+Altered or diminished-fifth omissions, modulation, beat-strength weighting, cadential inference,
+progression probabilities, confidence ranking, AI boundary models, and authoritative promotion of
+Stage 2 evidence remain deliberately unresolved.
 
 ## Verification
 

@@ -1,5 +1,13 @@
 """ST Guitar Harmonic Engine deterministic core."""
 
+from .alterations import (
+    AlterationKind,
+    AlteredTensionCandidate,
+    SuspendedChordCandidate,
+    SuspendedChordKind,
+    generate_altered_tension_candidates,
+    generate_suspended_chord_candidates,
+)
 from .analysis import (
     AnalysisStatus,
     CandidateAnalysis,
@@ -67,6 +75,8 @@ from .structural_explainability import (
 from .suspension import SuspensionObservation, detect_suspensions
 
 __all__ = [
+    "AlterationKind",
+    "AlteredTensionCandidate",
     "AnalysisStatus",
     "AnticipationObservation",
     "BassAnalysis",
@@ -105,6 +115,8 @@ __all__ = [
     "StructuralSegment",
     "StructuralSegmentation",
     "StructuralTransition",
+    "SuspendedChordCandidate",
+    "SuspendedChordKind",
     "SuspensionObservation",
     "TieState",
     "TimeSignature",
@@ -122,10 +134,12 @@ __all__ = [
     "detect_pedals",
     "detect_stepwise_ncts",
     "detect_suspensions",
+    "generate_altered_tension_candidates",
     "generate_exact_chord_candidates",
     "generate_extension_candidates",
     "generate_fifth_omission_candidates",
     "generate_incomplete_chord_candidates",
+    "generate_suspended_chord_candidates",
     "is_explainability_payload_compatible",
     "is_structural_explainability_payload_compatible",
     "resolve_frame_in_context",
