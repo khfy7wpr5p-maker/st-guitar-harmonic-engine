@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from enum import Enum
 from fractions import Fraction
 
+from .spelling import WrittenPitch
+
 
 class TieState(str, Enum):
     """Tie state carried by a symbolic note event."""
@@ -81,9 +83,10 @@ class TimeSignature:
 class NoteEvent:
     """Validated symbolic note event at the engine boundary.
 
-    MIDI pitch is intentionally used as the canonical sounding pitch for this
-    first contract. Written spelling, tuplets, grace notes, and source-specific
-    metadata are deferred to later versioned contracts rather than guessed here.
+    MIDI pitch remains the canonical sounding pitch. Optional ``written_pitch``
+    preserves source spelling without assuming it is enharmonically or octave-
+    equivalent to sounding MIDI; source transposition is normalized separately.
+    Tuplets, grace notes, and other source-specific metadata remain deferred.
     """
 
     measure_number: int
@@ -93,6 +96,7 @@ class NoteEvent:
     onset: RationalBeat
     duration: RationalBeat
     tie: TieState = TieState.NONE
+    written_pitch: WrittenPitch | None = None
 
     def __post_init__(self) -> None:
         for field_name in ("measure_number", "staff", "voice", "midi_pitch"):
@@ -118,6 +122,8 @@ class NoteEvent:
             raise ValueError("duration must be greater than zero")
         if not isinstance(self.tie, TieState):
             raise TypeError("tie must be a TieState")
+        if self.written_pitch is not None and not isinstance(self.written_pitch, WrittenPitch):
+            raise TypeError("written_pitch must be a WrittenPitch or None")
 
     @property
     def end(self) -> RationalBeat:
@@ -173,6 +179,7 @@ class Measure:
                     event.midi_pitch,
                     event.duration.fraction,
                     event.tie.value,
+                    event.written_pitch.name if event.written_pitch is not None else "",
                 ),
             )
         )

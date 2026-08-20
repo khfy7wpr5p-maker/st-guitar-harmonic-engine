@@ -40,15 +40,22 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - candidate/frame evidence mismatch is rejected,
 - no contextual reinterpretation of the bass is performed.
 
-### Stage 1-C — exact analysis orchestration
+### Stage 1-C — exact analysis orchestration ✅
 
 - frame → candidates → bass/inversion wired end-to-end,
 - deterministic `UNIQUE`, `AMBIGUOUS`, or `NO_MATCH` status,
 - ambiguity is preserved rather than silently resolved,
 - empty/silent measures return no fabricated result.
 
-This is still a structural exact-match engine. Non-chord tones, omissions,
-extensions, key context, enharmonic spelling, and ranking remain unresolved.
+### Stage 1-D — written pitch spelling contract
+
+- optional A–G written step + accidental + octave is preserved,
+- written spelling remains separate from canonical sounding MIDI,
+- guitar octave transposition is never guessed from MIDI alone,
+- later key/context logic can use enharmonic evidence without changing exact analysis.
+
+The engine still does not rank contextual harmony. Non-chord tones, omissions,
+extensions, key context, and functional interpretation remain unresolved.
 
 ## Verification
 
