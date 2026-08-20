@@ -1,5 +1,5 @@
 """ST Guitar Harmonic Engine deterministic core."""
 
-from .models import NoteEvent, RationalBeat, TieState
+from .models import Measure, NoteEvent, RationalBeat, TieState, TimeSignature
 
-__all__ = ["NoteEvent", "RationalBeat", "TieState"]
+__all__ = ["Measure", "NoteEvent", "RationalBeat", "TieState", "TimeSignature"]
