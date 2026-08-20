@@ -88,7 +88,7 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - removing or changing required v1 fields requires a new major schema version,
 - decision-bearing fields remain forbidden from the explainability schema.
 
-### Stage 2-A — harmonic boundary / structural segmentation
+### Stage 2-A — harmonic boundary / structural segmentation ✅
 
 - canonical frame boundaries are candidate transition points, not automatic harmonic boundaries,
 - fixed rule priority distinguishes `BOUNDARY`, `CONTINUATION`, and `UNRESOLVED`,
@@ -99,7 +99,17 @@ A safety-first symbolic harmony engine for polyphonic guitar scores.
 - existing exact/context decision paths are not mutated by structural segmentation,
 - schema `1.0` serialization remains unchanged by default; optional structural evidence is an additive `1.1` extension with no authoritative decision fields.
 
-Suspensions, anticipations, appoggiaturas, pedal reinterpretation, missing root/third/seventh,
+### Stage 2-B — conservative suspension evidence
+
+- suspension detection is evidence-only and does not alter structural or harmonic decisions,
+- preparation and resolution frames must be temporally contiguous and uniquely exact,
+- preparation and resolution harmonies must differ,
+- the middle frame must replace exactly one target chord pitch class with one prepared foreign pitch class,
+- the same staff/voice must sustain the prepared pitch or carry an explicit tie chain,
+- resolution must occur in the same staff/voice, to the missing target pitch class, downward by semitone or whole tone,
+- ambiguous anchors, unprepared tones, silent gaps, upward motion, and leaps are rejected rather than guessed.
+
+Anticipations, appoggiaturas, escape tones, pedal reinterpretation, missing root/third/seventh,
 altered or diminished-fifth omissions, extensions, modulation, beat-strength weighting,
 cadential inference, progression probabilities, confidence ranking, and AI boundary models
 remain deliberately unresolved.
