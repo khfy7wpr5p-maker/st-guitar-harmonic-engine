@@ -19,6 +19,7 @@ from .analysis import (
 )
 from .anticipation import AnticipationObservation, detect_anticipations
 from .chords import ChordCandidate, ChordQuality, generate_exact_chord_candidates
+from .confidence import CONFIDENCE_SEMANTICS, ConfidenceAssessment, ConfidenceState
 from .context import (
     ContextCandidate,
     ContextResolution,
@@ -106,10 +107,13 @@ __all__ = [
     "BassAnalysis",
     "BoundaryDisposition",
     "BoundaryReason",
+    "CONFIDENCE_SEMANTICS",
     "CandidateAnalysis",
     "CandidateFamily",
     "ChordCandidate",
     "ChordQuality",
+    "ConfidenceAssessment",
+    "ConfidenceState",
     "ContextCandidate",
     "ContextResolution",
     "EVIDENCE_PRECEDENCE",
