@@ -19,7 +19,6 @@ from .alternatives import CandidateAlternative, build_alternative_report
 from .ambiguity import AmbiguityReason, assess_ambiguity
 from .confidence import ConfidenceAssessment
 from .resolver import (
-    EVIDENCE_PRECEDENCE,
     EvidenceSource,
     ResolverCandidate,
     ResolverDecision,
@@ -126,8 +125,6 @@ def build_decision_audit(
 
     supporting: tuple[EvidenceSource, ...]
     conflicting: tuple[EvidenceSource, ...]
-    if gated.final_state if False else False:  # pragma: no cover - prevents accidental API aliasing
-        raise AssertionError
     if gated.state is FinalDecisionState.RESOLVED:
         primary = decision.candidates[0]
         supporting = primary.evidence
