@@ -1,5 +1,6 @@
 """ST Guitar Harmonic Engine deterministic core."""
 
+from .aggregator import aggregate_frame_evidence
 from .alterations import (
     AlterationKind,
     AlteredTensionCandidate,
@@ -141,6 +142,7 @@ __all__ = [
     "TonalContext",
     "TonalMode",
     "WrittenPitch",
+    "aggregate_frame_evidence",
     "analyze_bass_and_inversion",
     "analyze_frame_exact",
     "analyze_measure_exact",
