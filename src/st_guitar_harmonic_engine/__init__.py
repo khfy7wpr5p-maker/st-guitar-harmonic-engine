@@ -44,6 +44,12 @@ from .explainability_schema import (
 )
 from .extensions import ExtensionCandidate, ExtensionKind, generate_extension_candidates
 from .frames import HarmonicFrame, build_harmonic_frames
+from .functional import (
+    FunctionalObservation,
+    FunctionalRelation,
+    annotate_functional_relations,
+    observe_functional_relations,
+)
 from .inversion import BassAnalysis, Inversion, analyze_bass_and_inversion
 from .models import Measure, NoteEvent, RationalBeat, TieState, TimeSignature
 from .nct import NCTKind, NCTObservation, detect_stepwise_ncts
@@ -112,6 +118,8 @@ __all__ = [
     "ExtensionKind",
     "FrameAnalysis",
     "FrameExplainability",
+    "FunctionalObservation",
+    "FunctionalRelation",
     "HarmonicFrame",
     "HarmonicIdentity",
     "HarmonicRole",
@@ -152,6 +160,7 @@ __all__ = [
     "analyze_measure_exact",
     "analyze_measure_in_context",
     "annotate_adjacent_context",
+    "annotate_functional_relations",
     "annotate_voice_leading",
     "build_harmonic_frames",
     "build_measure_explainability",
@@ -170,6 +179,7 @@ __all__ = [
     "is_explainability_payload_compatible",
     "is_structural_explainability_payload_compatible",
     "observe_adjacent_context",
+    "observe_functional_relations",
     "observe_voice_leading",
     "resolve_frame_in_context",
     "segment_measure_structurally",
