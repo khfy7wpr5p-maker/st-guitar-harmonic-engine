@@ -51,6 +51,7 @@ from .functional import (
     observe_functional_relations,
 )
 from .inversion import BassAnalysis, Inversion, analyze_bass_and_inversion
+from .local_context import LocalTonalContextPlan, LocalTonalContextSpan
 from .models import Measure, NoteEvent, RationalBeat, TieState, TimeSignature
 from .nct import NCTKind, NCTObservation, detect_stepwise_ncts
 from .omissions import (
@@ -125,6 +126,8 @@ __all__ = [
     "HarmonicRole",
     "IncompleteChordCandidate",
     "Inversion",
+    "LocalTonalContextPlan",
+    "LocalTonalContextSpan",
     "Measure",
     "MeasureExplainability",
     "NCTKind",
