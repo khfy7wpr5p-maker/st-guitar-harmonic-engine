@@ -86,6 +86,7 @@ from .structural_explainability import (
     validate_structural_explainability_payload,
 )
 from .suspension import SuspensionObservation, detect_suspensions
+from .voice_leading import VoiceLeadingObservation, annotate_voice_leading, observe_voice_leading
 
 __all__ = [
     "AdjacentContextObservation",
@@ -143,6 +144,7 @@ __all__ = [
     "TimeSignature",
     "TonalContext",
     "TonalMode",
+    "VoiceLeadingObservation",
     "WrittenPitch",
     "aggregate_frame_evidence",
     "analyze_bass_and_inversion",
@@ -150,6 +152,7 @@ __all__ = [
     "analyze_measure_exact",
     "analyze_measure_in_context",
     "annotate_adjacent_context",
+    "annotate_voice_leading",
     "build_harmonic_frames",
     "build_measure_explainability",
     "detect_anticipations",
@@ -167,6 +170,7 @@ __all__ = [
     "is_explainability_payload_compatible",
     "is_structural_explainability_payload_compatible",
     "observe_adjacent_context",
+    "observe_voice_leading",
     "resolve_frame_in_context",
     "segment_measure_structurally",
     "serialize_measure_explainability",
