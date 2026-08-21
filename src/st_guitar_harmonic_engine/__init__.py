@@ -1,5 +1,6 @@
 """ST Guitar Harmonic Engine deterministic core."""
 
+from .adjacency import AdjacentContextObservation, annotate_adjacent_context, observe_adjacent_context
 from .aggregator import aggregate_frame_evidence
 from .alterations import (
     AlterationKind,
@@ -87,6 +88,7 @@ from .structural_explainability import (
 from .suspension import SuspensionObservation, detect_suspensions
 
 __all__ = [
+    "AdjacentContextObservation",
     "AlterationKind",
     "AlteredTensionCandidate",
     "AnalysisStatus",
@@ -147,6 +149,7 @@ __all__ = [
     "analyze_frame_exact",
     "analyze_measure_exact",
     "analyze_measure_in_context",
+    "annotate_adjacent_context",
     "build_harmonic_frames",
     "build_measure_explainability",
     "detect_anticipations",
@@ -163,6 +166,7 @@ __all__ = [
     "generate_suspended_chord_candidates",
     "is_explainability_payload_compatible",
     "is_structural_explainability_payload_compatible",
+    "observe_adjacent_context",
     "resolve_frame_in_context",
     "segment_measure_structurally",
     "serialize_measure_explainability",
