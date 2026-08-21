@@ -78,6 +78,7 @@ from .resolver import (
     evidence_precedence_index,
     stronger_evidence,
 )
+from .sequence import SequenceResolution, resolve_candidates_by_precedence, resolve_harmonic_sequence
 from .spelling import PitchStep, WrittenPitch
 from .structural import (
     BoundaryDisposition,
@@ -148,6 +149,7 @@ __all__ = [
     "ResolverDecision",
     "ResolverStatus",
     "STRUCTURAL_EXPLAINABILITY_SCHEMA_VERSION",
+    "SequenceResolution",
     "StructuralSegment",
     "StructuralSegmentation",
     "StructuralTransition",
@@ -188,7 +190,9 @@ __all__ = [
     "observe_functional_relations",
     "observe_voice_leading",
     "phrase_bounded_neighbors",
+    "resolve_candidates_by_precedence",
     "resolve_frame_in_context",
+    "resolve_harmonic_sequence",
     "segment_measure_structurally",
     "serialize_measure_explainability",
     "serialize_structural_explainability",
