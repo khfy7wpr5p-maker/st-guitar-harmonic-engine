@@ -66,6 +66,7 @@ from .ornamental_nct import (
     detect_ornamental_ncts,
 )
 from .pedal import PedalFrameEvidence, PedalObservation, detect_pedals
+from .phrase import PhrasePlan, PhraseSpan, phrase_bounded_neighbors
 from .resolver import (
     EVIDENCE_PRECEDENCE,
     CandidateFamily,
@@ -138,6 +139,8 @@ __all__ = [
     "OrnamentalNCTObservation",
     "PedalFrameEvidence",
     "PedalObservation",
+    "PhrasePlan",
+    "PhraseSpan",
     "PitchStep",
     "RationalBeat",
     "ResolutionStatus",
@@ -184,6 +187,7 @@ __all__ = [
     "observe_adjacent_context",
     "observe_functional_relations",
     "observe_voice_leading",
+    "phrase_bounded_neighbors",
     "resolve_frame_in_context",
     "segment_measure_structurally",
     "serialize_measure_explainability",
