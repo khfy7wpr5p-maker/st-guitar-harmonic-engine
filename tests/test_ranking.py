@@ -20,7 +20,7 @@ def candidate(root, *evidence):
 class CandidateRankingContractTests(unittest.TestCase):
     def test_strong_group_precedes_bounded_and_weak(self):
         strong = candidate(0, EvidenceSource.EXACT)
-        bounded = candidate(2, EvidenceSource.BASS_INVERSION)
+        bounded = candidate(2, EvidenceSource.STRUCTURAL)
         weak = candidate(4, EvidenceSource.INCOMPLETE_CHORD)
         groups = rank_candidates((weak, strong, bounded))
         self.assertEqual(
