@@ -9,3 +9,15 @@ build/
 dist/
 *.egg-info/
 .DS_Store
+
+# AI/model artifacts are external provenance references only.
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+*.tflite
+*.h5
+*.pb
+models/
+checkpoints/
