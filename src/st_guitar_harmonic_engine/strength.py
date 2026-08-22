@@ -1,7 +1,9 @@
-"""Deterministic evidence-strength classification for Stage 4-B.
+"""Deterministic evidence-strength classification for Stage 4-B / Stage 6-C.
 
 The classification is categorical and rule-based. It deliberately contains no
-numeric score, learned weight, or probability.
+numeric score, learned weight, or probability.  Guitar bass/inversion evidence
+is descriptive support only: by itself it cannot create bounded confidence for
+a harmonic identity.
 """
 
 from __future__ import annotations
@@ -14,7 +16,6 @@ _DIRECT_BOUNDED = frozenset(
     {
         EvidenceSource.TONAL_CONTEXT,
         EvidenceSource.STRUCTURAL,
-        EvidenceSource.BASS_INVERSION,
         EvidenceSource.VERIFIED_NCT,
     }
 )
@@ -33,7 +34,12 @@ _CORROBORATING = frozenset(
 
 
 def assess_candidate_strength(candidate: ResolverCandidate) -> ConfidenceAssessment:
-    """Classify one validated candidate using only its declared evidence."""
+    """Classify one validated candidate using only its declared evidence.
+
+    ``BASS_INVERSION`` may corroborate an already-supported identity but is not a
+    direct bounded-confidence source.  This prevents raw/manual candidates from
+    turning a sounding bass observation into false harmonic certainty.
+    """
 
     if not isinstance(candidate, ResolverCandidate):
         raise TypeError("candidate must be a ResolverCandidate")
