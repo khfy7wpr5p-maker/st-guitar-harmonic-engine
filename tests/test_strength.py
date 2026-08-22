@@ -32,7 +32,6 @@ class EvidenceStrengthTests(unittest.TestCase):
         for source in (
             EvidenceSource.TONAL_CONTEXT,
             EvidenceSource.STRUCTURAL,
-            EvidenceSource.BASS_INVERSION,
             EvidenceSource.VERIFIED_NCT,
         ):
             with self.subTest(source=source):
@@ -40,6 +39,11 @@ class EvidenceStrengthTests(unittest.TestCase):
                     assess_candidate_strength(candidate(source)).state,
                     ConfidenceState.BOUNDED,
                 )
+
+    def test_bass_inversion_alone_is_weak_not_bounded(self):
+        result = assess_candidate_strength(candidate(EvidenceSource.BASS_INVERSION))
+        self.assertIs(result.state, ConfidenceState.WEAK)
+        self.assertEqual(result.basis, (EvidenceSource.BASS_INVERSION,))
 
     def test_weak_primary_with_independent_corroboration_is_bounded(self):
         result = assess_candidate_strength(
@@ -52,6 +56,7 @@ class EvidenceStrengthTests(unittest.TestCase):
 
     def test_single_lower_evidence_is_weak(self):
         for source in (
+            EvidenceSource.BASS_INVERSION,
             EvidenceSource.INCOMPLETE_CHORD,
             EvidenceSource.COLOR_TONE,
             EvidenceSource.ADJACENT_CONTEXT,

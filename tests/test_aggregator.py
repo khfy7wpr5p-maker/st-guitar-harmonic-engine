@@ -12,7 +12,11 @@ from st_guitar_harmonic_engine import (
     TonalMode,
     analyze_frame_exact,
 )
+from st_guitar_harmonic_engine.abstention import FinalDecisionState, apply_abstention_policy
 from st_guitar_harmonic_engine.aggregator import aggregate_frame_evidence
+from st_guitar_harmonic_engine.confidence import ConfidenceState
+from st_guitar_harmonic_engine.resolver import ResolverDecision, ResolverStatus
+from st_guitar_harmonic_engine.strength import assess_candidate_strength
 
 
 def frame(*pitches):
@@ -42,6 +46,22 @@ class CandidateEvidenceAggregatorTests(unittest.TestCase):
             result[0].evidence,
             (EvidenceSource.EXACT, EvidenceSource.BASS_INVERSION),
         )
+
+    def test_exact_aggregator_path_stays_strong_after_bass_only_hardening(self):
+        candidates = aggregate_frame_evidence(frame(48, 52, 55))
+        self.assertEqual(
+            candidates[0].evidence,
+            (EvidenceSource.EXACT, EvidenceSource.BASS_INVERSION),
+        )
+        self.assertIs(
+            assess_candidate_strength(candidates[0]).state,
+            ConfidenceState.STRONG,
+        )
+        gated = apply_abstention_policy(
+            ResolverDecision(ResolverStatus.RESOLVED, candidates)
+        )
+        self.assertIs(gated.state, FinalDecisionState.RESOLVED)
+        self.assertEqual(gated.source_decision.candidates, candidates)
 
     def test_explicit_tonal_context_only_adds_support_to_matching_exact_candidate(self):
         result = aggregate_frame_evidence(

@@ -34,11 +34,22 @@ class AbstentionPolicyTests(unittest.TestCase):
     def test_bounded_candidate_passes_gate(self):
         decision = ResolverDecision(
             ResolverStatus.RESOLVED,
-            (candidate(EvidenceSource.BASS_INVERSION),),
+            (candidate(EvidenceSource.TONAL_CONTEXT),),
         )
         result = apply_abstention_policy(decision)
         self.assertIs(result.state, FinalDecisionState.RESOLVED)
         self.assertIs(result.confidence.state, ConfidenceState.BOUNDED)
+
+    def test_bass_inversion_only_candidate_abstains_instead_of_creating_identity(self):
+        decision = ResolverDecision(
+            ResolverStatus.RESOLVED,
+            (candidate(EvidenceSource.BASS_INVERSION),),
+        )
+        result = apply_abstention_policy(decision)
+        self.assertIs(result.state, FinalDecisionState.ABSTAIN)
+        self.assertIs(result.abstention_reason, AbstentionReason.WEAK_EVIDENCE)
+        self.assertIs(result.confidence.state, ConfidenceState.WEAK)
+        self.assertEqual(result.source_decision, decision)
 
     def test_weak_single_candidate_abstains_instead_of_false_certainty(self):
         decision = ResolverDecision(

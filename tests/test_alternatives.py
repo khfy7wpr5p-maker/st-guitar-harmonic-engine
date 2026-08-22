@@ -23,7 +23,7 @@ def candidate(root, *evidence):
 class AlternativesContractTests(unittest.TestCase):
     def test_resolved_has_primary_and_ranked_alternatives(self):
         primary = candidate(0, EvidenceSource.EXACT)
-        bounded = candidate(7, EvidenceSource.BASS_INVERSION)
+        bounded = candidate(7, EvidenceSource.STRUCTURAL)
         weak = candidate(9, EvidenceSource.INCOMPLETE_CHORD)
         gated = apply_abstention_policy(
             ResolverDecision(ResolverStatus.RESOLVED, (primary,))
