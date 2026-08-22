@@ -144,7 +144,7 @@ class GuitarVoicingEvidenceTests(unittest.TestCase):
 
     def test_outside_candidate_bass_stays_slash_or_pedal_possibility_not_identity(self):
         voicing = build_guitar_voicing_evidence(
-            (sounding(6, 10, 50), sounding(5, 3, 48), sounding(4, 2, 52), sounding(3, 0, 55))
+            (sounding(6, 0, 38), sounding(5, 3, 48), sounding(4, 2, 52), sounding(3, 0, 55))
         )
         bass = describe_bass_against_candidate(
             voicing,
@@ -152,6 +152,7 @@ class GuitarVoicingEvidenceTests(unittest.TestCase):
             candidate_pitch_classes=(0, 4, 7),
             pedal_bass_state=ContextualBassState.POSSIBLE,
         )
+        self.assertEqual(voicing.sounding_bass_pitch_class, 2)
         self.assertIs(bass.candidate_relation, CandidateBassRelation.OUTSIDE_CANDIDATE)
         self.assertFalse(bass.inversion_possible)
         self.assertTrue(bass.slash_chord_possible)
