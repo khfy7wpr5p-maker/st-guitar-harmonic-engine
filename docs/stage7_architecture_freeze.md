@@ -38,6 +38,10 @@ Guitar voicing schema v1.0 is descriptive bounded evidence, not harmonic authori
 
 Final states remain `resolved`, `ambiguous`, `abstain`, and `no_match`. `BASS_INVERSION` alone remains weak and abstained. Omission-only evidence remains weak unless independently corroborated under the frozen deterministic policy. Exact ties remain ambiguous unless a higher permitted deterministic context rule safely distinguishes them.
 
+Post-freeze Teacher-Gold maintenance permits one narrowly documented structural exact-tie rule: a symmetric `augmented` or `diminished_seventh` exact tie may be narrowed when a normalized symbolic source supplies complete, pitch-class-consistent, non-conflicting written spelling and exactly one candidate matches the written tertian letter stack. This does not change evidence precedence, does not permit arbitrary `EXACT + STRUCTURAL` tie-breaking, and fails closed to ambiguity when spelling is missing, inconsistent, non-unique, or conflicts with a unique tonal-context choice. See `symmetric_root_spelling_evidence_v0_1.md`.
+
+Post-freeze Teacher-Gold maintenance also permits the abstention gate to withhold an authoritative ambiguous set when every surviving candidate is weak/insufficient `INCOMPLETE_CHORD` evidence. The source ambiguity and all candidates remain visible; this is not candidate resolution.
+
 ## Serialization and public API
 
 - Explainability schema remains v1.x compatible and non-authoritative; v1.0 is the frozen base.
@@ -47,6 +51,7 @@ Final states remain `resolved`, `ambiguous`, `abstain`, and `no_match`. `BASS_IN
 - Batch mode resolves frames independently; sequence mode uses the existing deterministic sequence resolver and only explicitly validated phrase context.
 - Serialization is canonical, deterministic and versioned.
 - Confidence remains categorical and must not be presented as probability.
+- Public request v1.0 remains MIDI-only; written-spelling evidence is not silently added to that schema.
 
 ## Audit and benchmark
 
@@ -58,6 +63,8 @@ Final states remain `resolved`, `ambiguous`, `abstain`, and `no_match`. `BASS_IN
 ## Differential regression
 
 Stage 6 final main `c2df9d09d3e2c84a9ea203f8567ec5e48eeab3ea` remains the frozen pre-Stage-7 semantic reference for exact resolution, ambiguity, abstention, precedence and determinism. Any intentional change requires an explicit documented contract revision and cannot be treated as an optimization or incidental refactor.
+
+The Teacher-Gold maintenance changes above are explicit contract revisions: complete-base extension/altered evidence may add bounded structural support; all-weak incomplete ambiguity may be withheld as abstention; and symmetric exact root ambiguity may use fail-closed written-spelling structural evidence. None changes AI authority or evidence precedence.
 
 ## Security debts outside engine semantics
 
