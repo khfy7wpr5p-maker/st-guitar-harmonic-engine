@@ -20,6 +20,7 @@ from .resolver import (
     ResolverCandidate,
     evidence_precedence_index,
 )
+from .spelling_resolution import select_spelling_supported_symmetric_candidate
 
 
 def _candidate(identity: HarmonicIdentity, sources: tuple[EvidenceSource, ...]) -> ResolverCandidate:
@@ -44,6 +45,11 @@ def aggregate_frame_evidence(
     support in addition to color-tone evidence because those producers already
     require the entire supported base chord plus exactly one validated color tone.
     Suspended and incomplete-chord evidence deliberately remain weak-only here.
+
+    For symmetric exact augmented/diminished-seventh ties, validated written
+    spelling may add STRUCTURAL support to exactly one candidate. Candidate
+    identities are never removed here; the resolver decides whether that support
+    is sufficient to narrow the exact tie.
     """
 
     if not isinstance(frame, HarmonicFrame):
@@ -59,11 +65,17 @@ def aggregate_frame_evidence(
             if contextual is not None
             else set()
         )
+        spelling_supported = select_spelling_supported_symmetric_candidate(
+            frame,
+            tuple(item.candidate for item in exact.candidates),
+        )
         candidates = []
         for item in exact.candidates:
             sources = [EvidenceSource.EXACT, EvidenceSource.BASS_INVERSION]
             if item.candidate in in_context:
                 sources.append(EvidenceSource.TONAL_CONTEXT)
+            if spelling_supported is not None and item.candidate == spelling_supported:
+                sources.append(EvidenceSource.STRUCTURAL)
             candidates.append(
                 _candidate(
                     HarmonicIdentity(
