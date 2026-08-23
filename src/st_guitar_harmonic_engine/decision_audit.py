@@ -95,10 +95,23 @@ class DecisionAudit:
             if self.confidence is None or self.ambiguity_reason is not None or self.abstention_reason is not None:
                 raise ValueError("resolved audit has inconsistent gate metadata")
         elif self.final_state is FinalDecisionState.ABSTAIN:
-            if self.source_status is not ResolverStatus.RESOLVED or self.primary is not None:
-                raise ValueError("abstain audit requires resolved source but no primary")
-            if self.confidence is None or self.abstention_reason is None or self.ambiguity_reason is not None:
-                raise ValueError("abstain audit has inconsistent gate metadata")
+            if self.primary is not None or self.abstention_reason is None:
+                raise ValueError("abstain audit requires no primary and an abstention reason")
+            if self.source_status is ResolverStatus.RESOLVED:
+                if self.confidence is None or self.ambiguity_reason is not None:
+                    raise ValueError("resolved-source abstain has inconsistent gate metadata")
+                if self.abstention_reason not in {
+                    AbstentionReason.WEAK_EVIDENCE,
+                    AbstentionReason.INSUFFICIENT_EVIDENCE,
+                }:
+                    raise ValueError("resolved-source abstain has unsupported reason")
+            elif self.source_status is ResolverStatus.AMBIGUOUS:
+                if self.confidence is not None or self.ambiguity_reason is None:
+                    raise ValueError("ambiguous-source abstain must preserve ambiguity without confidence")
+                if self.abstention_reason is not AbstentionReason.AMBIGUOUS_WEAK_INCOMPLETE:
+                    raise ValueError("ambiguous-source abstain requires weak-incomplete reason")
+            else:
+                raise ValueError("abstain audit requires resolved or ambiguous source")
         elif self.final_state is FinalDecisionState.AMBIGUOUS:
             if self.source_status is not ResolverStatus.AMBIGUOUS or self.primary is not None:
                 raise ValueError("ambiguous audit requires ambiguous source and no primary")
@@ -132,13 +145,16 @@ def build_decision_audit(
         competing_union = set().union(*(set(item.evidence) for item in competing)) if competing else set()
         conflicting = _canonical_evidence(competing_union - set(primary.evidence))
     elif gated.state is FinalDecisionState.ABSTAIN:
-        withheld = decision.candidates[0]
-        supporting = withheld.evidence
-        competing = tuple(
-            item for item in all_candidates if item.identity != withheld.identity
-        )
-        competing_union = set().union(*(set(item.evidence) for item in competing)) if competing else set()
-        conflicting = _canonical_evidence(competing_union - set(withheld.evidence))
+        if decision.status is ResolverStatus.RESOLVED:
+            withheld = decision.candidates[0]
+            supporting = withheld.evidence
+            competing = tuple(
+                item for item in all_candidates if item.identity != withheld.identity
+            )
+            competing_union = set().union(*(set(item.evidence) for item in competing)) if competing else set()
+            conflicting = _canonical_evidence(competing_union - set(withheld.evidence))
+        else:
+            supporting, conflicting = _evidence_profile(decision.candidates)
     elif gated.state is FinalDecisionState.AMBIGUOUS:
         supporting, conflicting = _evidence_profile(decision.candidates)
     else:
