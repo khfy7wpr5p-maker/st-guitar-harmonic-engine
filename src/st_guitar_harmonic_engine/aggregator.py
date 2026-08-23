@@ -39,6 +39,11 @@ def aggregate_frame_evidence(
     succeeds, lower-confidence omission/extension/suspension/alteration producers
     are not consulted. With no exact candidate, all bounded Stage 2 candidate
     evidence is retained and sorted canonically without ranking.
+
+    Complete-base extension and altered-dominant producers contribute structural
+    support in addition to color-tone evidence because those producers already
+    require the entire supported base chord plus exactly one validated color tone.
+    Suspended and incomplete-chord evidence deliberately remain weak-only here.
     """
 
     if not isinstance(frame, HarmonicFrame):
@@ -87,7 +92,7 @@ def aggregate_frame_evidence(
                     CandidateFamily.EXTENSION,
                     f"{item.base_quality.value}:{item.extension.value}",
                 ),
-                (EvidenceSource.COLOR_TONE,),
+                (EvidenceSource.STRUCTURAL, EvidenceSource.COLOR_TONE),
             )
         )
     for item in generate_suspended_chord_candidates(frame):
@@ -105,7 +110,7 @@ def aggregate_frame_evidence(
                     CandidateFamily.ALTERED,
                     f"{item.base_quality.value}:{item.alteration.value}",
                 ),
-                (EvidenceSource.COLOR_TONE,),
+                (EvidenceSource.STRUCTURAL, EvidenceSource.COLOR_TONE),
             )
         )
 

@@ -97,7 +97,7 @@ class CandidateEvidenceAggregatorTests(unittest.TestCase):
         self.assertEqual(len(matching), 1)
         self.assertEqual(matching[0].evidence, (EvidenceSource.INCOMPLETE_CHORD,))
 
-    def test_extension_candidate_is_normalized_as_color_tone(self):
+    def test_complete_extension_candidate_gets_structural_and_color_evidence(self):
         result = aggregate_frame_evidence(frame(48, 50, 52, 55))  # C D E G
         matching = [
             item
@@ -107,7 +107,10 @@ class CandidateEvidenceAggregatorTests(unittest.TestCase):
             and item.identity.variant == "major:natural_ninth"
         ]
         self.assertEqual(len(matching), 1)
-        self.assertEqual(matching[0].evidence, (EvidenceSource.COLOR_TONE,))
+        self.assertEqual(
+            matching[0].evidence,
+            (EvidenceSource.STRUCTURAL, EvidenceSource.COLOR_TONE),
+        )
 
     def test_repeated_runs_are_equal_and_ordered(self):
         target = frame(48, 52)
