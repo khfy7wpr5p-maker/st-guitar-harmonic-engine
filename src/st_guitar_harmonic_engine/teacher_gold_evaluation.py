@@ -159,7 +159,7 @@ def _digest(payload: object) -> str:
 
 
 def _decision_identity(item: object) -> HarmonicIdentity:
-    if not isinstance(item, dict) or set(item) < {"identity"}:
+    if not isinstance(item, dict) or "identity" not in item:
         raise ValueError("public result candidate is malformed")
     raw = item["identity"]
     if not isinstance(raw, dict) or set(raw) != {"root_pc", "family", "variant"}:
