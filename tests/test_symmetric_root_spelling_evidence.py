@@ -151,6 +151,19 @@ class SymmetricRootSpellingEvidenceTests(unittest.TestCase):
             (EvidenceSource.EXACT, EvidenceSource.BASS_INVERSION),
         )
 
+    def test_arbitrary_non_symmetric_exact_structural_marker_cannot_break_tie(self):
+        left = ResolverCandidate(
+            HarmonicIdentity(0, CandidateFamily.BASIC, "major"),
+            (EvidenceSource.EXACT, EvidenceSource.STRUCTURAL),
+        )
+        right = ResolverCandidate(
+            HarmonicIdentity(9, CandidateFamily.BASIC, "minor"),
+            (EvidenceSource.EXACT,),
+        )
+        decision = resolve_candidates_by_precedence((left, right))
+        self.assertIs(decision.status, ResolverStatus.AMBIGUOUS)
+        self.assertEqual(set(decision.candidates), {left, right})
+
     def test_tonal_and_structural_conflict_preserves_exact_ambiguity(self):
         tonal = ResolverCandidate(
             HarmonicIdentity(6, CandidateFamily.BASIC, "augmented"),
