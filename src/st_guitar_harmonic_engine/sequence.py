@@ -1,9 +1,11 @@
 """Deterministic Stage 3-H global harmonic sequence resolver.
 
 The resolver composes validated Stage 3 evidence without probabilistic scoring.
-Exact ambiguity is never broken by weak sequential evidence; only explicit tonal
-context may narrow exact candidates. Non-exact candidates are narrowed
-lexicographically by the published evidence precedence, preserving ties.
+Exact ambiguity is never broken by weak sequential evidence. Explicit tonal
+context may narrow exact candidates, and validated written-spelling support may
+narrow only a symmetric exact tie through STRUCTURAL evidence. Non-exact
+candidates are narrowed lexicographically by the published evidence precedence,
+preserving ties.
 """
 
 from __future__ import annotations
@@ -54,9 +56,11 @@ def resolve_candidates_by_precedence(
 ) -> ResolverDecision:
     """Resolve one candidate set using explicit lexicographic precedence.
 
-    Exact ambiguity is deliberately special-cased: explicit tonal context may
-    narrow it, but structural/heuristic/sequence evidence may not silently turn
-    an exact tie into false certainty.
+    Exact ambiguity is deliberately special-cased. Explicit tonal context may
+    narrow it. A unique STRUCTURAL marker may also narrow it, but the only exact
+    path that emits such a marker is the fail-closed symmetric written-spelling
+    check in the evidence aggregator. If tonal and structural support conflict,
+    exact ambiguity is preserved rather than forcing a root.
     """
 
     if not isinstance(candidates, tuple) or any(
@@ -77,8 +81,17 @@ def resolve_candidates_by_precedence(
         contextual = tuple(
             item for item in exact if EvidenceSource.TONAL_CONTEXT in item.evidence
         )
+        structural = tuple(
+            item for item in exact if EvidenceSource.STRUCTURAL in item.evidence
+        )
+        if len(contextual) == 1 and len(structural) == 1:
+            if contextual[0].identity != structural[0].identity:
+                return ResolverDecision(ResolverStatus.AMBIGUOUS, exact)
+            return ResolverDecision(ResolverStatus.RESOLVED, contextual)
         if len(contextual) == 1:
             return ResolverDecision(ResolverStatus.RESOLVED, contextual)
+        if len(structural) == 1:
+            return ResolverDecision(ResolverStatus.RESOLVED, structural)
         if len(exact) == 1:
             return ResolverDecision(ResolverStatus.RESOLVED, exact)
         return ResolverDecision(ResolverStatus.AMBIGUOUS, exact)
