@@ -3,7 +3,7 @@
 The resolver composes validated Stage 3 evidence without probabilistic scoring.
 Exact ambiguity is never broken by weak sequential evidence. Explicit tonal
 context may narrow exact candidates, and validated written-spelling support may
-narrow only a symmetric exact tie through STRUCTURAL evidence. Non-exact
+narrow only a symmetric augmented/diminished-seventh exact tie. Non-exact
 candidates are narrowed lexicographically by the published evidence precedence,
 preserving ties.
 """
@@ -20,12 +20,16 @@ from .local_context import LocalTonalContextPlan
 from .phrase import PhrasePlan, phrase_bounded_neighbors
 from .resolver import (
     EVIDENCE_PRECEDENCE,
+    CandidateFamily,
     EvidenceSource,
     ResolverCandidate,
     ResolverDecision,
     ResolverStatus,
 )
 from .voice_leading import annotate_voice_leading
+
+
+_SYMMETRIC_SPELLING_VARIANTS = frozenset({"augmented", "diminished_seventh"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,16 +55,35 @@ class SequenceResolution:
                 raise ValueError("decision cannot reference a candidate outside its frame")
 
 
+def _unique_symmetric_structural_exact(
+    exact: tuple[ResolverCandidate, ...],
+) -> ResolverCandidate | None:
+    """Return the unique spelling-supported symmetric exact candidate, if valid."""
+
+    if len(exact) < 2:
+        return None
+    if any(item.identity.family is not CandidateFamily.BASIC for item in exact):
+        return None
+    variants = {item.identity.variant for item in exact}
+    if len(variants) != 1 or next(iter(variants)) not in _SYMMETRIC_SPELLING_VARIANTS:
+        return None
+    structural = tuple(
+        item for item in exact if EvidenceSource.STRUCTURAL in item.evidence
+    )
+    return structural[0] if len(structural) == 1 else None
+
+
 def resolve_candidates_by_precedence(
     candidates: tuple[ResolverCandidate, ...],
 ) -> ResolverDecision:
     """Resolve one candidate set using explicit lexicographic precedence.
 
     Exact ambiguity is deliberately special-cased. Explicit tonal context may
-    narrow it. A unique STRUCTURAL marker may also narrow it, but the only exact
-    path that emits such a marker is the fail-closed symmetric written-spelling
-    check in the evidence aggregator. If tonal and structural support conflict,
-    exact ambiguity is preserved rather than forcing a root.
+    narrow it. A unique STRUCTURAL marker may narrow it only when every exact
+    candidate is the same supported symmetric BASIC variant (augmented or fully
+    diminished seventh); the only engine path that emits this marker is the
+    fail-closed written-spelling check in the evidence aggregator. If tonal and
+    spelling support conflict, exact ambiguity is preserved.
     """
 
     if not isinstance(candidates, tuple) or any(
@@ -81,17 +104,15 @@ def resolve_candidates_by_precedence(
         contextual = tuple(
             item for item in exact if EvidenceSource.TONAL_CONTEXT in item.evidence
         )
-        structural = tuple(
-            item for item in exact if EvidenceSource.STRUCTURAL in item.evidence
-        )
-        if len(contextual) == 1 and len(structural) == 1:
-            if contextual[0].identity != structural[0].identity:
+        structural = _unique_symmetric_structural_exact(exact)
+        if len(contextual) == 1 and structural is not None:
+            if contextual[0].identity != structural.identity:
                 return ResolverDecision(ResolverStatus.AMBIGUOUS, exact)
             return ResolverDecision(ResolverStatus.RESOLVED, contextual)
         if len(contextual) == 1:
             return ResolverDecision(ResolverStatus.RESOLVED, contextual)
-        if len(structural) == 1:
-            return ResolverDecision(ResolverStatus.RESOLVED, structural)
+        if structural is not None:
+            return ResolverDecision(ResolverStatus.RESOLVED, (structural,))
         if len(exact) == 1:
             return ResolverDecision(ResolverStatus.RESOLVED, exact)
         return ResolverDecision(ResolverStatus.AMBIGUOUS, exact)
