@@ -44,7 +44,9 @@ def _sixth_collision_identity(
     This is deliberately inverse-only: a sixth candidate is introduced only when
     the frozen exact analyzer has already recognized the mathematically colliding
     relative seventh quality and the observed pitch-class set matches the collision
-    contract exactly. No independent sixth inference is performed.
+    contract exactly. Root-position seventh evidence is protected: when the lowest
+    sounding pitch is the recognized seventh root, the existing exact seventh result
+    is retained and no sixth alternative is injected.
     """
 
     if exact_identity.family is not CandidateFamily.BASIC:
@@ -54,6 +56,10 @@ def _sixth_collision_identity(
     elif exact_identity.variant == "half_diminished_seventh":
         kind = SixthChordKind.MINOR_SIXTH
     else:
+        return None
+
+    bass_pc = min(event.midi_pitch for event in frame.events) % 12
+    if bass_pc == exact_identity.root_pc:
         return None
 
     sixth_root_pc = (exact_identity.root_pc + 3) % 12
@@ -84,7 +90,8 @@ def aggregate_frame_evidence(
 
     Equal-pitch-set major-sixth/minor-seventh and minor-sixth/half-diminished-
     seventh collisions are special safety cases. A sixth identity is added only as
-    an equal EXACT alternative to the already-recognized exact seventh identity.
+    an equal EXACT alternative to the already-recognized exact seventh identity,
+    and only when the existing exact seventh is not root-position in the bass.
     Until a separate candidate-specific tonal-context contract is merged, tonal
     context is intentionally withheld from both collision candidates so the
     authoritative resolver must preserve ambiguity.
