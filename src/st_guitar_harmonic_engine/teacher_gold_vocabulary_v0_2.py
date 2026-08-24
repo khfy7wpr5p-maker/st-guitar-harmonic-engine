@@ -19,6 +19,10 @@ from .teacher_gold_adapter import (
     note_name_to_midi,
     parse_teacher_candidate_identity,
 )
+from .teacher_gold_benchmark_assembly import (
+    TeacherGoldBenchmarkAssembly,
+    assemble_frozen_teacher_gold_benchmark_v0_1,
+)
 from .teacher_gold_reference import (
     TeacherGoldReferenceCandidate,
     TeacherGoldReferenceCase,
@@ -121,4 +125,21 @@ def summarize_teacher_gold_reference_coverage_v0_2(
 ) -> TeacherGoldReferenceCoverage:
     return summarize_teacher_gold_reference_coverage(
         upgrade_reference_cases_v0_2(cases)
+    )
+
+
+def assemble_frozen_teacher_gold_benchmark_v0_2(
+    calibration_cases: Sequence[TeacherGoldReferenceCase],
+    holdout_cases: Sequence[TeacherGoldReferenceCase],
+) -> TeacherGoldBenchmarkAssembly:
+    """Upgrade vocabulary metadata, then reuse the frozen v0.1 partition assembly.
+
+    This wrapper does not relax case-count, case-id, split, ordering, partial-
+    alternative, or readiness rules. It only makes the vocabulary version used
+    for representability explicit at the benchmark entrypoint.
+    """
+
+    return assemble_frozen_teacher_gold_benchmark_v0_1(
+        upgrade_reference_cases_v0_2(calibration_cases),
+        upgrade_reference_cases_v0_2(holdout_cases),
     )
