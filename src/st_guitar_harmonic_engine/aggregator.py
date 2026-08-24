@@ -7,7 +7,11 @@ contract; it does not rank candidates or infer new musical facts.
 
 from __future__ import annotations
 
-from .alterations import generate_altered_tension_candidates, generate_suspended_chord_candidates
+from .alterations import (
+    SuspendedChordKind,
+    generate_altered_tension_candidates,
+    generate_suspended_chord_candidates,
+)
 from .analysis import analyze_frame_exact
 from .context import TonalContext, resolve_frame_in_context
 from .extensions import generate_extension_candidates
@@ -44,7 +48,10 @@ def aggregate_frame_evidence(
     Complete-base extension and altered-dominant producers contribute structural
     support in addition to color-tone evidence because those producers already
     require the entire supported base chord plus exactly one validated color tone.
-    Suspended and incomplete-chord evidence deliberately remain weak-only here.
+    Suspended triads remain weak color-tone evidence because their pitch sets may
+    preserve dual-root ambiguity. Complete 7sus2/7sus4 candidates carry structural
+    support because all four structural tones are present and the pitch-set root is
+    unique within the supported suspended-seventh vocabulary.
 
     For symmetric exact augmented/diminished-seventh ties, validated written
     spelling may add STRUCTURAL support to exactly one candidate. Candidate
@@ -108,10 +115,16 @@ def aggregate_frame_evidence(
             )
         )
     for item in generate_suspended_chord_candidates(frame):
+        suspended_sources = (
+            (EvidenceSource.STRUCTURAL, EvidenceSource.COLOR_TONE)
+            if item.kind
+            in {SuspendedChordKind.SEVENTH_SUS2, SuspendedChordKind.SEVENTH_SUS4}
+            else (EvidenceSource.COLOR_TONE,)
+        )
         candidates.append(
             _candidate(
                 HarmonicIdentity(item.root_pc, CandidateFamily.SUSPENDED, item.kind.value),
-                (EvidenceSource.COLOR_TONE,),
+                suspended_sources,
             )
         )
     for item in generate_altered_tension_candidates(frame):
