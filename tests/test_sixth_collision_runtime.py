@@ -55,6 +55,22 @@ class SixthCollisionRuntimeTests(unittest.TestCase):
         )
         self.assertEqual(resolve_candidates_by_precedence(candidates).status.value, "ambiguous")
 
+    def test_root_position_minor_seventh_is_protected(self):
+        candidates = aggregate_frame_evidence(frame(57, 60, 64, 67))  # A C E G
+        self.assertEqual(
+            tuple(item.identity for item in candidates),
+            (HarmonicIdentity(9, CandidateFamily.BASIC, "minor_seventh"),),
+        )
+        self.assertEqual(resolve_candidates_by_precedence(candidates).status.value, "resolved")
+
+    def test_root_position_half_diminished_seventh_is_protected(self):
+        candidates = aggregate_frame_evidence(frame(59, 62, 65, 69))  # B D F A
+        self.assertEqual(
+            tuple(item.identity for item in candidates),
+            (HarmonicIdentity(11, CandidateFamily.BASIC, "half_diminished_seventh"),),
+        )
+        self.assertEqual(resolve_candidates_by_precedence(candidates).status.value, "resolved")
+
     def test_transposed_major_sixth_collision_is_detected(self):
         candidates = aggregate_frame_evidence(frame(53, 57, 60, 62))  # F A C D
         self.assertEqual(
