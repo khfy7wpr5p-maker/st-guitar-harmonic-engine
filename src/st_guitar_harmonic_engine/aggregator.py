@@ -24,6 +24,7 @@ from .resolver import (
     ResolverCandidate,
     evidence_precedence_index,
 )
+from .sixth_collision import SixthChordKind, build_sixth_chord_collision
 from .spelling_resolution import select_spelling_supported_symmetric_candidate
 
 
@@ -31,6 +32,42 @@ def _candidate(identity: HarmonicIdentity, sources: tuple[EvidenceSource, ...]) 
     return ResolverCandidate(
         identity=identity,
         evidence=tuple(sorted(set(sources), key=evidence_precedence_index)),
+    )
+
+
+def _sixth_collision_identity(
+    frame: HarmonicFrame,
+    exact_identity: HarmonicIdentity,
+) -> HarmonicIdentity | None:
+    """Return the equal-pitch-set sixth identity for one exact seventh, if any.
+
+    This is deliberately inverse-only: a sixth candidate is introduced only when
+    the frozen exact analyzer has already recognized the mathematically colliding
+    relative seventh quality and the observed pitch-class set matches the collision
+    contract exactly. No independent sixth inference is performed.
+    """
+
+    if exact_identity.family is not CandidateFamily.BASIC:
+        return None
+    if exact_identity.variant == "minor_seventh":
+        kind = SixthChordKind.MAJOR_SIXTH
+    elif exact_identity.variant == "half_diminished_seventh":
+        kind = SixthChordKind.MINOR_SIXTH
+    else:
+        return None
+
+    sixth_root_pc = (exact_identity.root_pc + 3) % 12
+    collision = build_sixth_chord_collision(sixth_root_pc, kind)
+    if collision.competing_root_pc != exact_identity.root_pc:
+        return None
+    if collision.competing_variant != exact_identity.variant:
+        return None
+    if collision.pitch_classes != frame.pitch_classes:
+        return None
+    return HarmonicIdentity(
+        sixth_root_pc,
+        CandidateFamily.BASIC,
+        kind.value,
     )
 
 
@@ -44,6 +81,13 @@ def aggregate_frame_evidence(
     succeeds, lower-confidence omission/extension/suspension/alteration producers
     are not consulted. With no exact candidate, all bounded Stage 2 candidate
     evidence is retained and sorted canonically without ranking.
+
+    Equal-pitch-set major-sixth/minor-seventh and minor-sixth/half-diminished-
+    seventh collisions are special safety cases. A sixth identity is added only as
+    an equal EXACT alternative to the already-recognized exact seventh identity.
+    Until a separate candidate-specific tonal-context contract is merged, tonal
+    context is intentionally withheld from both collision candidates so the
+    authoritative resolver must preserve ambiguity.
 
     Complete-base extension and altered-dominant producers contribute structural
     support in addition to color-tone evidence because those producers already
@@ -66,7 +110,25 @@ def aggregate_frame_evidence(
 
     exact = analyze_frame_exact(frame)
     if exact.candidates:
-        contextual = resolve_frame_in_context(exact, context) if context is not None else None
+        exact_identities = tuple(
+            HarmonicIdentity(
+                root_pc=item.candidate.root_pc,
+                family=CandidateFamily.BASIC,
+                variant=item.candidate.quality.value,
+            )
+            for item in exact.candidates
+        )
+        sixth_collision = (
+            _sixth_collision_identity(frame, exact_identities[0])
+            if len(exact_identities) == 1
+            else None
+        )
+
+        contextual = (
+            resolve_frame_in_context(exact, context)
+            if context is not None and sixth_collision is None
+            else None
+        )
         in_context = (
             {item.analysis.candidate for item in contextual.candidates if item.in_context}
             if contextual is not None
@@ -77,20 +139,19 @@ def aggregate_frame_evidence(
             tuple(item.candidate for item in exact.candidates),
         )
         candidates = []
-        for item in exact.candidates:
+        for item, identity in zip(exact.candidates, exact_identities):
             sources = [EvidenceSource.EXACT, EvidenceSource.BASS_INVERSION]
             if item.candidate in in_context:
                 sources.append(EvidenceSource.TONAL_CONTEXT)
             if spelling_supported is not None and item.candidate == spelling_supported:
                 sources.append(EvidenceSource.STRUCTURAL)
+            candidates.append(_candidate(identity, tuple(sources)))
+
+        if sixth_collision is not None:
             candidates.append(
                 _candidate(
-                    HarmonicIdentity(
-                        root_pc=item.candidate.root_pc,
-                        family=CandidateFamily.BASIC,
-                        variant=item.candidate.quality.value,
-                    ),
-                    tuple(sources),
+                    sixth_collision,
+                    (EvidenceSource.EXACT, EvidenceSource.BASS_INVERSION),
                 )
             )
         return tuple(sorted(candidates, key=lambda item: item.identity))
