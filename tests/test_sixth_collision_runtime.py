@@ -29,8 +29,12 @@ def frame(*pitches):
     )
 
 
+def decision_for(target, context=None):
+    return resolve_candidates_by_precedence(aggregate_frame_evidence(target, context))
+
+
 class SixthCollisionRuntimeTests(unittest.TestCase):
-    def test_major_sixth_pitch_set_preserves_equal_exact_ambiguity(self):
+    def test_major_sixth_pitch_set_preserves_equal_exact_ambiguity_without_context(self):
         candidates = aggregate_frame_evidence(frame(48, 52, 55, 57))  # C E G A
         self.assertEqual(
             {item.identity for item in candidates},
@@ -44,7 +48,7 @@ class SixthCollisionRuntimeTests(unittest.TestCase):
         self.assertEqual(decision.status.value, "ambiguous")
         self.assertIs(apply_abstention_policy(decision).state, FinalDecisionState.AMBIGUOUS)
 
-    def test_minor_sixth_pitch_set_preserves_equal_exact_ambiguity(self):
+    def test_minor_sixth_pitch_set_preserves_equal_exact_ambiguity_without_context(self):
         candidates = aggregate_frame_evidence(frame(48, 51, 55, 57))  # C Eb G A
         self.assertEqual(
             {item.identity for item in candidates},
@@ -54,6 +58,64 @@ class SixthCollisionRuntimeTests(unittest.TestCase):
             },
         )
         self.assertEqual(resolve_candidates_by_precedence(candidates).status.value, "ambiguous")
+
+    def test_explicit_major_tonic_resolves_major_sixth_collision(self):
+        decision = decision_for(
+            frame(48, 52, 55, 57),
+            TonalContext(0, TonalMode.MAJOR),
+        )
+        self.assertEqual(decision.status.value, "resolved")
+        self.assertEqual(
+            decision.candidates[0].identity,
+            HarmonicIdentity(0, CandidateFamily.BASIC, "major_sixth"),
+        )
+        self.assertIn(EvidenceSource.TONAL_CONTEXT, decision.candidates[0].evidence)
+
+    def test_explicit_minor_tonic_resolves_competing_minor_seventh(self):
+        decision = decision_for(
+            frame(48, 52, 55, 57),
+            TonalContext(9, TonalMode.MINOR),
+        )
+        self.assertEqual(decision.status.value, "resolved")
+        self.assertEqual(
+            decision.candidates[0].identity,
+            HarmonicIdentity(9, CandidateFamily.BASIC, "minor_seventh"),
+        )
+        self.assertIn(EvidenceSource.TONAL_CONTEXT, decision.candidates[0].evidence)
+
+    def test_major_sixth_collision_stays_ambiguous_under_unrelated_or_wrong_mode_context(self):
+        for context in (
+            TonalContext(0, TonalMode.MINOR),
+            TonalContext(5, TonalMode.MAJOR),
+            TonalContext(9, TonalMode.MAJOR),
+        ):
+            with self.subTest(context=context):
+                self.assertEqual(
+                    decision_for(frame(48, 52, 55, 57), context).status.value,
+                    "ambiguous",
+                )
+
+    def test_explicit_minor_tonic_resolves_minor_sixth_collision(self):
+        decision = decision_for(
+            frame(48, 51, 55, 57),
+            TonalContext(0, TonalMode.MINOR),
+        )
+        self.assertEqual(decision.status.value, "resolved")
+        self.assertEqual(
+            decision.candidates[0].identity,
+            HarmonicIdentity(0, CandidateFamily.BASIC, "minor_sixth"),
+        )
+        self.assertIn(EvidenceSource.TONAL_CONTEXT, decision.candidates[0].evidence)
+
+    def test_half_diminished_collision_is_not_promoted_as_minor_tonic(self):
+        decision = decision_for(
+            frame(48, 51, 55, 57),
+            TonalContext(9, TonalMode.MINOR),
+        )
+        self.assertEqual(decision.status.value, "ambiguous")
+        self.assertTrue(
+            all(EvidenceSource.TONAL_CONTEXT not in item.evidence for item in decision.candidates)
+        )
 
     def test_root_position_minor_seventh_is_protected(self):
         candidates = aggregate_frame_evidence(frame(57, 60, 64, 67))  # A C E G
@@ -89,22 +151,16 @@ class SixthCollisionRuntimeTests(unittest.TestCase):
             HarmonicIdentity(0, CandidateFamily.BASIC, "major_seventh"),
         )
 
-    def test_tonal_context_does_not_break_collision_in_this_contract(self):
-        candidates = aggregate_frame_evidence(
-            frame(48, 52, 55, 57),
-            TonalContext(0, TonalMode.MAJOR),
-        )
-        self.assertEqual(len(candidates), 2)
-        self.assertTrue(
-            all(EvidenceSource.TONAL_CONTEXT not in item.evidence for item in candidates)
-        )
-        self.assertEqual(resolve_candidates_by_precedence(candidates).status.value, "ambiguous")
-
-    def test_repeated_collision_aggregation_is_deterministic(self):
+    def test_repeated_contextual_collision_resolution_is_deterministic(self):
         target = frame(48, 52, 55, 57)
-        expected = aggregate_frame_evidence(target)
+        context = TonalContext(0, TonalMode.MAJOR)
+        expected = aggregate_frame_evidence(target, context)
         for _ in range(10):
-            self.assertEqual(aggregate_frame_evidence(target), expected)
+            self.assertEqual(aggregate_frame_evidence(target, context), expected)
+            self.assertEqual(
+                resolve_candidates_by_precedence(aggregate_frame_evidence(target, context)),
+                resolve_candidates_by_precedence(expected),
+            )
 
 
 if __name__ == "__main__":

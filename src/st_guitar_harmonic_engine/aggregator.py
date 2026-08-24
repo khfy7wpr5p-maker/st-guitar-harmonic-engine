@@ -13,7 +13,7 @@ from .alterations import (
     generate_suspended_chord_candidates,
 )
 from .analysis import analyze_frame_exact
-from .context import TonalContext, resolve_frame_in_context
+from .context import TonalContext, TonalMode, resolve_frame_in_context
 from .extensions import generate_extension_candidates
 from .frames import HarmonicFrame
 from .omissions import generate_incomplete_chord_candidates
@@ -77,6 +77,39 @@ def _sixth_collision_identity(
     )
 
 
+def _sixth_collision_context_identity(
+    exact_identity: HarmonicIdentity,
+    sixth_identity: HarmonicIdentity,
+    context: TonalContext | None,
+) -> HarmonicIdentity | None:
+    """Return one candidate-specific tonic-supported collision identity, if safe.
+
+    The rule is intentionally narrow. A sixth candidate may receive TONAL_CONTEXT
+    only when its root equals the explicit tonic and its quality matches the caller's
+    major/minor mode. The competing minor-seventh may receive TONAL_CONTEXT only as
+    an explicit minor-mode tonic. Half-diminished seventh is never promoted as a
+    tonic here. Broader diatonic membership, bass, spelling, adjacency, and model
+    evidence do not authorize a collision tie-break.
+    """
+
+    if context is None:
+        return None
+    if sixth_identity.variant == "major_sixth":
+        if context.mode is TonalMode.MAJOR and context.tonic_pc == sixth_identity.root_pc:
+            return sixth_identity
+    elif sixth_identity.variant == "minor_sixth":
+        if context.mode is TonalMode.MINOR and context.tonic_pc == sixth_identity.root_pc:
+            return sixth_identity
+
+    if (
+        exact_identity.variant == "minor_seventh"
+        and context.mode is TonalMode.MINOR
+        and context.tonic_pc == exact_identity.root_pc
+    ):
+        return exact_identity
+    return None
+
+
 def aggregate_frame_evidence(
     frame: HarmonicFrame,
     context: TonalContext | None = None,
@@ -92,9 +125,9 @@ def aggregate_frame_evidence(
     seventh collisions are special safety cases. A sixth identity is added only as
     an equal EXACT alternative to the already-recognized exact seventh identity,
     and only when the existing exact seventh is not root-position in the bass.
-    Until a separate candidate-specific tonal-context contract is merged, tonal
-    context is intentionally withheld from both collision candidates so the
-    authoritative resolver must preserve ambiguity.
+    Without explicit candidate-specific tonic support the resolver preserves
+    ambiguity. With an explicit tonic/mode, exactly one candidate may receive
+    TONAL_CONTEXT under the narrow collision rule above.
 
     Complete-base extension and altered-dominant producers contribute structural
     support in addition to color-tone evidence because those producers already
@@ -130,6 +163,11 @@ def aggregate_frame_evidence(
             if len(exact_identities) == 1
             else None
         )
+        collision_context = (
+            _sixth_collision_context_identity(exact_identities[0], sixth_collision, context)
+            if sixth_collision is not None
+            else None
+        )
 
         contextual = (
             resolve_frame_in_context(exact, context)
@@ -148,19 +186,17 @@ def aggregate_frame_evidence(
         candidates = []
         for item, identity in zip(exact.candidates, exact_identities):
             sources = [EvidenceSource.EXACT, EvidenceSource.BASS_INVERSION]
-            if item.candidate in in_context:
+            if item.candidate in in_context or identity == collision_context:
                 sources.append(EvidenceSource.TONAL_CONTEXT)
             if spelling_supported is not None and item.candidate == spelling_supported:
                 sources.append(EvidenceSource.STRUCTURAL)
             candidates.append(_candidate(identity, tuple(sources)))
 
         if sixth_collision is not None:
-            candidates.append(
-                _candidate(
-                    sixth_collision,
-                    (EvidenceSource.EXACT, EvidenceSource.BASS_INVERSION),
-                )
-            )
+            sixth_sources = [EvidenceSource.EXACT, EvidenceSource.BASS_INVERSION]
+            if sixth_collision == collision_context:
+                sixth_sources.append(EvidenceSource.TONAL_CONTEXT)
+            candidates.append(_candidate(sixth_collision, tuple(sixth_sources)))
         return tuple(sorted(candidates, key=lambda item: item.identity))
 
     candidates: list[ResolverCandidate] = []
