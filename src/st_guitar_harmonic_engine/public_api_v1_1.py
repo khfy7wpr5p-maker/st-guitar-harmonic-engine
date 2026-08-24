@@ -92,11 +92,8 @@ def _beat(raw: object) -> RationalBeat:
     return RationalBeat(raw["numerator"], raw["denominator"])
 
 
-def _raw_locator(frame: dict[str, Any], event: dict[str, Any]) -> tuple[object, ...]:
+def _raw_event_fingerprint(event: dict[str, Any]) -> tuple[object, ...]:
     return (
-        frame["measure_number"],
-        _beat(frame["start"]).fraction,
-        _beat(frame["end"]).fraction,
         event["staff"],
         event["voice"],
         event["midi_pitch"],
@@ -106,11 +103,21 @@ def _raw_locator(frame: dict[str, Any], event: dict[str, Any]) -> tuple[object, 
     )
 
 
-def _validated_locator(frame: HarmonicFrame, event: NoteEvent) -> tuple[object, ...]:
+def _raw_frame_fingerprint(frame: dict[str, Any]) -> tuple[object, ...]:
     return (
-        frame.measure_number,
-        frame.start.fraction,
-        frame.end.fraction,
+        frame["measure_number"],
+        _beat(frame["start"]).fraction,
+        _beat(frame["end"]).fraction,
+        tuple(sorted(_raw_event_fingerprint(event) for event in frame["events"])),
+    )
+
+
+def _raw_locator(frame: dict[str, Any], event: dict[str, Any]) -> tuple[object, ...]:
+    return (_raw_frame_fingerprint(frame), _raw_event_fingerprint(event))
+
+
+def _validated_event_fingerprint(event: NoteEvent) -> tuple[object, ...]:
+    return (
         event.staff,
         event.voice,
         event.midi_pitch,
@@ -118,6 +125,19 @@ def _validated_locator(frame: HarmonicFrame, event: NoteEvent) -> tuple[object, 
         event.duration.fraction,
         event.tie.value,
     )
+
+
+def _validated_frame_fingerprint(frame: HarmonicFrame) -> tuple[object, ...]:
+    return (
+        frame.measure_number,
+        frame.start.fraction,
+        frame.end.fraction,
+        tuple(sorted(_validated_event_fingerprint(event) for event in frame.events)),
+    )
+
+
+def _validated_locator(frame: HarmonicFrame, event: NoteEvent) -> tuple[object, ...]:
+    return (_validated_frame_fingerprint(frame), _validated_event_fingerprint(event))
 
 
 def validate_public_request_v1_1(payload: object) -> ValidatedPublicRequest:
