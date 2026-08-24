@@ -42,9 +42,16 @@ Therefore note content alone cannot safely decide a sixth-chord root. Promoting 
 
 ## Benchmark use
 
-Existing frozen reference cases may be upgraded with `upgrade_reference_cases_v0_2` before being passed into the existing benchmark assembly. The assembly itself does not need a semantic change because it already accepts any fully representable `TeacherGoldReferenceCase` and refuses partially representable cases.
+Existing frozen reference cases may be upgraded with `upgrade_reference_cases_v0_2` before being passed into the existing benchmark assembly.
 
-HOLDOUT cases must not be converted into special-case rules or regression fixtures. The mapping is label-generic and derives only from the independently implemented runtime vocabulary.
+For normal benchmark assembly, use `assemble_frozen_teacher_gold_benchmark_v0_2`. It performs only two steps:
+
+1. upgrade representability metadata with the generic v0.2 vocabulary mapping;
+2. delegate to the existing frozen v0.1 assembly.
+
+The wrapper does not relax case count, split, case-id sequence, ordering, partial-alternative, or readiness rules. A partially representable ambiguity remains reference-only as a whole case.
+
+HOLDOUT cases must not be converted into special-case rules or regression fixtures. The v0.2 mapping is label-generic and derives only from the independently implemented runtime vocabulary. Synthetic partition tests may exercise the frozen namespace without copying HOLDOUT musical content.
 
 ## Non-goals
 
