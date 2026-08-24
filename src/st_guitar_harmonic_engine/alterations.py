@@ -1,10 +1,10 @@
 """Conservative suspended-chord and altered-dominant evidence.
 
 Stage 2-H keeps these colors outside the authoritative exact chord vocabulary.
-Suspended triads are represented as root/kind candidates. Altered tensions are
-accepted only over a complete dominant-seventh base with exactly one canonical
-altered tension. No ranking, resolver mutation, or omission+alteration inference
-is performed.
+Suspended triads and complete suspended sevenths are represented as root/kind
+candidates. Altered tensions are accepted only over a complete dominant-seventh
+base with exactly one canonical altered tension. No ranking, resolver mutation,
+or omission+alteration inference is performed.
 """
 
 from __future__ import annotations
@@ -19,11 +19,15 @@ from .frames import HarmonicFrame
 class SuspendedChordKind(str, Enum):
     SUS2 = "sus2"
     SUS4 = "sus4"
+    SEVENTH_SUS2 = "7sus2"
+    SEVENTH_SUS4 = "7sus4"
 
 
 _SUSPENDED_INTERVALS: tuple[tuple[SuspendedChordKind, frozenset[int]], ...] = (
     (SuspendedChordKind.SUS2, frozenset({0, 2, 7})),
     (SuspendedChordKind.SUS4, frozenset({0, 5, 7})),
+    (SuspendedChordKind.SEVENTH_SUS2, frozenset({0, 2, 7, 10})),
+    (SuspendedChordKind.SEVENTH_SUS4, frozenset({0, 5, 7, 10})),
 )
 
 
@@ -58,8 +62,13 @@ class SuspendedChordCandidate:
             raise TypeError("kind must be a SuspendedChordKind")
         if tuple(sorted(set(self.observed_pitch_classes))) != self.observed_pitch_classes:
             raise ValueError("observed_pitch_classes must be unique and sorted")
-        if len(self.observed_pitch_classes) != 3:
-            raise ValueError("suspended chord evidence must contain three pitch classes")
+        expected_count = (
+            3
+            if self.kind in {SuspendedChordKind.SUS2, SuspendedChordKind.SUS4}
+            else 4
+        )
+        if len(self.observed_pitch_classes) != expected_count:
+            raise ValueError("suspended chord evidence has unexpected pitch-class count")
 
 
 @dataclass(frozen=True, slots=True)
@@ -101,7 +110,13 @@ class AlteredTensionCandidate:
 def generate_suspended_chord_candidates(
     frame: HarmonicFrame,
 ) -> tuple[SuspendedChordCandidate, ...]:
-    """Return exact sus2/sus4 pitch-set evidence without changing exact vocabulary."""
+    """Return exact sus2/sus4 and 7sus2/7sus4 pitch-set evidence.
+
+    Exact basic-chord matches continue to suppress this lower vocabulary layer.
+    Suspended triads preserve their well-known dual-root ambiguity. Complete
+    suspended sevenths require root + suspension + fifth + minor seventh and are
+    represented without dropping the seventh.
+    """
 
     if not isinstance(frame, HarmonicFrame):
         raise TypeError("frame must be a HarmonicFrame")
@@ -109,7 +124,7 @@ def generate_suspended_chord_candidates(
         return ()
 
     observed = frozenset(frame.pitch_classes)
-    if len(observed) != 3:
+    if len(observed) not in (3, 4):
         return ()
 
     canonical = tuple(sorted(observed))
