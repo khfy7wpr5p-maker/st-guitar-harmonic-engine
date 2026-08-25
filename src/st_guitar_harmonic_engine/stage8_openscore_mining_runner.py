@@ -17,7 +17,6 @@ from pathlib import Path, PurePosixPath
 import re
 import sys
 import tempfile
-import xml.etree.ElementTree as ET
 import zipfile
 
 from .stage8_openscore_ambiguity_miner import (
@@ -25,7 +24,11 @@ from .stage8_openscore_ambiguity_miner import (
     OpenScoreAmbiguityCandidate,
     mine_openscore_ambiguities,
 )
-from .stage8_openscore_conversion import OpenScoreConversionReceipt
+from .stage8_openscore_conversion import (
+    OpenScoreConversionError,
+    OpenScoreConversionReceipt,
+    _parse_mxl_container_rootfile,
+)
 from .stage8_openscore_musicxml import OpenScoreMusicXMLError, parse_openscore_mxl
 from .stage8_openscore_snapshot import canonical_openscore_snapshots
 
@@ -45,7 +48,6 @@ _SHA40_RE = re.compile(r"^[0-9a-f]{40}$")
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _VERSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._+()/-]{0,127}$")
 _CONTAINER_PATH = "META-INF/container.xml"
-_CONTAINER_NS = "urn:oasis:names:tc:opendocument:xmlns:container"
 
 _MANIFEST_KEYS = frozenset({"schema", "version", "item_count", "items"})
 _RECEIPT_KEYS = frozenset(
@@ -264,26 +266,10 @@ def _container_rootfile(path: Path) -> str:
                 raise OpenScoreMiningRunnerError("MXL is missing META-INF/container.xml") from exc
     except zipfile.BadZipFile as exc:
         raise OpenScoreMiningRunnerError("MXL is not a valid ZIP archive") from exc
-    if len(payload) > 1024 * 1024:
-        raise OpenScoreMiningRunnerError("MXL container.xml exceeds approved bound")
-    upper = payload.upper()
-    if b"<!DOCTYPE" in upper or b"<!ENTITY" in upper:
-        raise OpenScoreMiningRunnerError("MXL container.xml cannot contain DTD/entity declarations")
     try:
-        root = ET.fromstring(payload)
-    except ET.ParseError as exc:
-        raise OpenScoreMiningRunnerError("MXL container.xml is malformed") from exc
-    rootfiles = root.find(f"{{{_CONTAINER_NS}}}rootfiles")
-    if rootfiles is None:
-        raise OpenScoreMiningRunnerError("MXL container.xml has no rootfiles element")
-    entries = rootfiles.findall(f"{{{_CONTAINER_NS}}}rootfile")
-    if len(entries) != 1:
-        raise OpenScoreMiningRunnerError("MXL container.xml must contain exactly one rootfile")
-    value = entries[0].attrib.get("full-path", "").strip()
-    path_value = PurePosixPath(value)
-    if not value or path_value.is_absolute() or ".." in path_value.parts or "." in path_value.parts:
-        raise OpenScoreMiningRunnerError("MXL container rootfile path is unsafe")
-    return path_value.as_posix()
+        return _parse_mxl_container_rootfile(payload)
+    except OpenScoreConversionError as exc:
+        raise OpenScoreMiningRunnerError("MXL container.xml is invalid") from exc
 
 
 def _receipt_hash(receipt: OpenScoreConversionReceipt) -> str:
