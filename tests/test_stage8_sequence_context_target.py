@@ -1,7 +1,7 @@
 import unittest
+from dataclasses import replace
 
 from st_guitar_harmonic_engine.stage8_sequence_context_target import (
-    Stage8SequenceContextTarget,
     Stage8SequenceContextTargetStatus,
     approved_sequence_context_target,
     assess_sequence_context_target,
@@ -17,21 +17,15 @@ class Stage8SequenceContextTargetTests(unittest.TestCase):
         self.assertFalse(result.production_authority_granted)
 
     def test_future_frame_access_fails_closed(self):
-        target = approved_sequence_context_target()
-        unsafe = Stage8SequenceContextTarget(
-            **{**target.__dict__, "uses_future_frames": True}
-        )
+        unsafe = replace(approved_sequence_context_target(), uses_future_frames=True)
         result = assess_sequence_context_target(unsafe)
         self.assertIs(result.status, Stage8SequenceContextTargetStatus.BLOCKED_NONCAUSAL_CONTEXT)
 
     def test_candidate_generation_or_authority_change_is_blocked(self):
-        target = approved_sequence_context_target()
-        unsafe = Stage8SequenceContextTarget(
-            **{
-                **target.__dict__,
-                "may_generate_candidates": True,
-                "may_change_authoritative_state": True,
-            }
+        unsafe = replace(
+            approved_sequence_context_target(),
+            may_generate_candidates=True,
+            may_change_authoritative_state=True,
         )
         result = assess_sequence_context_target(unsafe)
         self.assertIs(result.status, Stage8SequenceContextTargetStatus.BLOCKED_AUTHORITY_RISK)
@@ -41,22 +35,19 @@ class Stage8SequenceContextTargetTests(unittest.TestCase):
         )
 
     def test_non_ambiguous_source_scope_is_blocked(self):
-        target = approved_sequence_context_target()
-        unsafe = Stage8SequenceContextTarget(
-            **{**target.__dict__, "requires_source_state_ambiguous": False}
+        unsafe = replace(
+            approved_sequence_context_target(),
+            requires_source_state_ambiguous=False,
         )
         result = assess_sequence_context_target(unsafe)
         self.assertIs(result.status, Stage8SequenceContextTargetStatus.BLOCKED_AUTHORITY_RISK)
 
     def test_teacher_gold_or_holdout_labels_are_blocked(self):
-        target = approved_sequence_context_target()
-        unsafe = Stage8SequenceContextTarget(
-            **{
-                **target.__dict__,
-                "teacher_gold_labels_available_to_model": True,
-                "holdout_labels_available_to_model": True,
-                "derived_from_holdout_labels": True,
-            }
+        unsafe = replace(
+            approved_sequence_context_target(),
+            teacher_gold_labels_available_to_model=True,
+            holdout_labels_available_to_model=True,
+            derived_from_holdout_labels=True,
         )
         result = assess_sequence_context_target(unsafe)
         self.assertIs(result.status, Stage8SequenceContextTargetStatus.BLOCKED_LABEL_LEAKAGE)
@@ -70,19 +61,13 @@ class Stage8SequenceContextTargetTests(unittest.TestCase):
         )
 
     def test_target_identity_is_fixed(self):
-        target = approved_sequence_context_target()
-        wrong = Stage8SequenceContextTarget(
-            **{**target.__dict__, "target_id": "other-target"}
-        )
+        wrong = replace(approved_sequence_context_target(), target_id="other-target")
         result = assess_sequence_context_target(wrong)
         self.assertIs(result.status, Stage8SequenceContextTargetStatus.BLOCKED_TARGET_MISMATCH)
 
     def test_previous_context_is_bounded_by_constructor(self):
-        target = approved_sequence_context_target()
         with self.assertRaises(ValueError):
-            Stage8SequenceContextTarget(
-                **{**target.__dict__, "previous_frame_limit": 5}
-            )
+            replace(approved_sequence_context_target(), previous_frame_limit=5)
 
 
 if __name__ == "__main__":
