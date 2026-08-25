@@ -1,5 +1,6 @@
 import hashlib
 import unittest
+from dataclasses import replace
 
 from st_guitar_harmonic_engine.stage8_feature_contract import STAGE8_FEATURE_CONTRACT_VERSION
 from st_guitar_harmonic_engine.stage8_sequence_context_holdout import (
@@ -87,10 +88,7 @@ class Stage8SequenceContextHoldoutTests(unittest.TestCase):
 
     def test_reference_leakage_fails_closed(self):
         cases = list(_cases())
-        first = cases[0]
-        cases[0] = Stage8SequenceContextHoldoutCase(
-            **{**first.__dict__, "teacher_gold_holdout_overlap": True}
-        )
+        cases[0] = replace(cases[0], teacher_gold_holdout_overlap=True)
         result = assess_sequence_context_holdout(
             tuple(cases),
             training_source_group_ids=frozenset(),
@@ -100,10 +98,7 @@ class Stage8SequenceContextHoldoutTests(unittest.TestCase):
 
     def test_wrong_source_allocation_fails_closed(self):
         cases = list(_cases())
-        first = cases[0]
-        cases[0] = Stage8SequenceContextHoldoutCase(
-            **{**first.__dict__, "source_id": "owned-synthetic-guitar-context"}
-        )
+        cases[0] = replace(cases[0], source_id="owned-synthetic-guitar-context")
         result = assess_sequence_context_holdout(
             tuple(cases),
             training_source_group_ids=frozenset(),
@@ -113,13 +108,10 @@ class Stage8SequenceContextHoldoutTests(unittest.TestCase):
 
     def test_draft_case_blocks_freeze(self):
         cases = list(_cases())
-        first = cases[0]
-        cases[0] = Stage8SequenceContextHoldoutCase(
-            **{
-                **first.__dict__,
-                "annotation_status": Stage8HoldoutAnnotationStatus.DRAFT,
-                "preferred_candidate_id": None,
-            }
+        cases[0] = replace(
+            cases[0],
+            annotation_status=Stage8HoldoutAnnotationStatus.DRAFT,
+            preferred_candidate_id=None,
         )
         result = assess_sequence_context_holdout(
             tuple(cases),
