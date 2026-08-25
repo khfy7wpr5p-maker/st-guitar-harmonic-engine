@@ -13,7 +13,7 @@ import os
 from pathlib import Path, PurePosixPath
 import re
 import subprocess
-from typing import Callable, Protocol
+from typing import Protocol
 import xml.etree.ElementTree as ET
 import zipfile
 
@@ -29,6 +29,7 @@ _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _VERSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._+()/-]{0,127}$")
 _CONTAINER_PATH = "META-INF/container.xml"
 _CONTAINER_NS = "urn:oasis:names:tc:opendocument:xmlns:container"
+_APPROVED_CONTAINER_NAMESPACES = frozenset({"", _CONTAINER_NS})
 
 
 class OpenScoreConversionError(RuntimeError):
@@ -152,6 +153,70 @@ def _validated_archive_member(value: str) -> PurePosixPath:
     return path
 
 
+def _xml_tag_parts(tag: str) -> tuple[str, str]:
+    """Return ``(namespace, local_name)`` for one ElementTree tag."""
+
+    if not isinstance(tag, str) or not tag:
+        raise OpenScoreConversionError("MXL container.xml contains an invalid XML tag")
+    if not tag.startswith("{"):
+        return "", tag
+    boundary = tag.find("}")
+    if boundary <= 1 or boundary == len(tag) - 1:
+        raise OpenScoreConversionError("MXL container.xml contains an invalid namespaced XML tag")
+    return tag[1:boundary], tag[boundary + 1 :]
+
+
+def _parse_mxl_container_rootfile(container: bytes) -> str:
+    """Parse one bounded container.xml payload with strict namespace compatibility.
+
+    MusicXML packages normally use the OCF container namespace, while MuseScore
+    3.6.2 emits the same ``container/rootfiles/rootfile`` structure without any
+    namespace. Those two forms are accepted. Unknown or mixed namespaces fail
+    closed, as do duplicate/missing structural elements and unsafe paths.
+    """
+
+    if not isinstance(container, bytes) or not container:
+        raise OpenScoreConversionError("MXL container.xml is empty")
+    if len(container) > 1024 * 1024:
+        raise OpenScoreConversionError("MXL container.xml exceeds approved bound")
+    upper = container.upper()
+    if b"<!DOCTYPE" in upper or b"<!ENTITY" in upper:
+        raise OpenScoreConversionError("MXL container.xml cannot contain DTD/entity declarations")
+    try:
+        root = ET.fromstring(container)
+    except ET.ParseError as exc:
+        raise OpenScoreConversionError("MXL container.xml is malformed") from exc
+
+    namespace, local = _xml_tag_parts(root.tag)
+    if local != "container" or namespace not in _APPROVED_CONTAINER_NAMESPACES:
+        raise OpenScoreConversionError("MXL container.xml root element/namespace is not approved")
+
+    rootfiles_nodes = []
+    for child in root:
+        child_namespace, child_local = _xml_tag_parts(child.tag)
+        if child_local != "rootfiles":
+            continue
+        if child_namespace != namespace:
+            raise OpenScoreConversionError("MXL container.xml mixes namespaces")
+        rootfiles_nodes.append(child)
+    if len(rootfiles_nodes) != 1:
+        raise OpenScoreConversionError("MXL container.xml must contain exactly one rootfiles element")
+
+    entries = []
+    for child in rootfiles_nodes[0]:
+        child_namespace, child_local = _xml_tag_parts(child.tag)
+        if child_local != "rootfile":
+            continue
+        if child_namespace != namespace:
+            raise OpenScoreConversionError("MXL container.xml mixes namespaces")
+        entries.append(child)
+    if len(entries) != 1:
+        raise OpenScoreConversionError("MXL must declare exactly one rootfile")
+
+    value = entries[0].attrib.get("full-path", "").strip()
+    return _validated_archive_member(value).as_posix()
+
+
 def _sha256_file(path: Path, *, maximum_bytes: int | None = None) -> tuple[str, int]:
     digest = hashlib.sha256()
     size = 0
@@ -272,15 +337,7 @@ def _validate_mxl(path: Path, request: OpenScoreConversionRequest) -> str:
             if container_info.file_size > 1024 * 1024:
                 raise OpenScoreConversionError("MXL container.xml exceeds approved bound")
             container = archive.read(container_info)
-            try:
-                root = ET.fromstring(container)
-            except ET.ParseError as exc:
-                raise OpenScoreConversionError("MXL container.xml is malformed") from exc
-            rootfiles = root.findall(f".//{{{_CONTAINER_NS}}}rootfile")
-            if len(rootfiles) != 1:
-                raise OpenScoreConversionError("MXL must declare exactly one rootfile")
-            rootfile_path = rootfiles[0].attrib.get("full-path", "")
-            rootfile = _validated_archive_member(rootfile_path).as_posix()
+            rootfile = _parse_mxl_container_rootfile(container)
             if rootfile not in names:
                 raise OpenScoreConversionError("MXL declared rootfile is missing")
             if PurePosixPath(rootfile).suffix.lower() not in {".xml", ".musicxml"}:
