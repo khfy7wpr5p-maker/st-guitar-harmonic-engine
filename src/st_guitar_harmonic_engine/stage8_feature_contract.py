@@ -30,7 +30,6 @@ class Stage8FeatureContractStatus(str, Enum):
     BLOCKED_SCHEMA_EMPTY = "blocked_schema_empty"
     BLOCKED_DUPLICATE_FEATURE = "blocked_duplicate_feature"
     BLOCKED_UNAPPROVED_FEATURE = "blocked_unapproved_feature"
-    BLOCKED_NONCAUSAL_FEATURE = "blocked_noncausal_feature"
     FEATURE_SCHEMA_FROZEN = "feature_schema_frozen"
 
 
@@ -92,7 +91,11 @@ class Stage8FeatureContractAssessment:
             raise TypeError("reasons must contain non-empty strings")
         if tuple(sorted(set(self.reasons))) != self.reasons:
             raise ValueError("reasons must be unique canonical order")
-        if isinstance(self.feature_count, bool) or not isinstance(self.feature_count, int) or self.feature_count < 0:
+        if (
+            isinstance(self.feature_count, bool)
+            or not isinstance(self.feature_count, int)
+            or self.feature_count < 0
+        ):
             raise ValueError("feature_count must be a non-negative int")
         if self.model_training_authorized or self.production_authority_granted:
             raise ValueError("feature contract cannot authorize training or production")
@@ -116,7 +119,8 @@ def _spec(
 # Intentionally excludes ADJACENT_CONTEXT and VOICE_FUNCTION evidence because the
 # current deterministic annotations can include next-frame information. Sequence
 # context for this research target must be represented by explicit previous-frame
-# features below instead.
+# features below instead. Phrase length is also excluded because it may encode
+# future knowledge; only the causal current position index is allowed.
 _APPROVED_CURRENT = frozenset(
     {
         _spec("current_pitch_class_mask", Stage8FeatureSource.CURRENT_FRAME),
@@ -126,16 +130,39 @@ _APPROVED_CURRENT = frozenset(
         _spec("candidate_family", Stage8FeatureSource.CURRENT_CANDIDATE, candidate_specific=True),
         _spec("candidate_variant", Stage8FeatureSource.CURRENT_CANDIDATE, candidate_specific=True),
         _spec("candidate_has_exact", Stage8FeatureSource.CURRENT_CANDIDATE, candidate_specific=True),
-        _spec("candidate_has_tonal_context", Stage8FeatureSource.CURRENT_CANDIDATE, candidate_specific=True),
-        _spec("candidate_has_structural", Stage8FeatureSource.CURRENT_CANDIDATE, candidate_specific=True),
-        _spec("candidate_has_bass_inversion", Stage8FeatureSource.CURRENT_CANDIDATE, candidate_specific=True),
-        _spec("candidate_has_verified_nct", Stage8FeatureSource.CURRENT_CANDIDATE, candidate_specific=True),
-        _spec("candidate_has_incomplete_chord", Stage8FeatureSource.CURRENT_CANDIDATE, candidate_specific=True),
-        _spec("candidate_has_color_tone", Stage8FeatureSource.CURRENT_CANDIDATE, candidate_specific=True),
+        _spec(
+            "candidate_has_tonal_context",
+            Stage8FeatureSource.CURRENT_CANDIDATE,
+            candidate_specific=True,
+        ),
+        _spec(
+            "candidate_has_structural",
+            Stage8FeatureSource.CURRENT_CANDIDATE,
+            candidate_specific=True,
+        ),
+        _spec(
+            "candidate_has_bass_inversion",
+            Stage8FeatureSource.CURRENT_CANDIDATE,
+            candidate_specific=True,
+        ),
+        _spec(
+            "candidate_has_verified_nct",
+            Stage8FeatureSource.CURRENT_CANDIDATE,
+            candidate_specific=True,
+        ),
+        _spec(
+            "candidate_has_incomplete_chord",
+            Stage8FeatureSource.CURRENT_CANDIDATE,
+            candidate_specific=True,
+        ),
+        _spec(
+            "candidate_has_color_tone",
+            Stage8FeatureSource.CURRENT_CANDIDATE,
+            candidate_specific=True,
+        ),
         _spec("explicit_tonic_pc", Stage8FeatureSource.EXPLICIT_CONTEXT),
         _spec("explicit_tonal_mode", Stage8FeatureSource.EXPLICIT_CONTEXT),
         _spec("phrase_position_index", Stage8FeatureSource.PHRASE_METADATA),
-        _spec("phrase_length", Stage8FeatureSource.PHRASE_METADATA),
     }
 )
 
@@ -159,6 +186,9 @@ _FORBIDDEN_TOKENS = (
     "next_",
     "raw_text",
     "teacher_reason",
+    "phrase_length",
+    "adjacent_context",
+    "voice_function",
 )
 
 
@@ -214,25 +244,14 @@ def assess_stage8_feature_schema(
             0,
         )
 
-    identities = [(item.feature_id, item.source.value, item.lookback, item.candidate_specific) for item in schema.features]
+    identities = [
+        (item.feature_id, item.source.value, item.lookback, item.candidate_specific)
+        for item in schema.features
+    ]
     if len(set(identities)) != len(identities):
         return Stage8FeatureContractAssessment(
             Stage8FeatureContractStatus.BLOCKED_DUPLICATE_FEATURE,
             ("duplicate_feature_spec",),
-            len(schema.features),
-        )
-
-    noncausal = tuple(
-        sorted(
-            item.feature_id
-            for item in schema.features
-            if item.lookback < 0 or item.lookback > _MAX_LOOKBACK
-        )
-    )
-    if noncausal:
-        return Stage8FeatureContractAssessment(
-            Stage8FeatureContractStatus.BLOCKED_NONCAUSAL_FEATURE,
-            tuple(f"{item}:noncausal_or_unbounded" for item in noncausal),
             len(schema.features),
         )
 
