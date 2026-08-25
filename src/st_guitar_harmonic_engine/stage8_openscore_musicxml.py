@@ -33,6 +33,10 @@ _MAX_EVENTS = 2_000_000
 _MAX_STAVES_PER_PART = 16
 _MAX_VOICE = 64
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_APPROVED_MUSICXML31_DOCTYPE = (
+    b'<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" '
+    b'"http://www.musicxml.org/dtds/partwise.dtd">'
+)
 _NATURAL_PC = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
 
 
@@ -391,6 +395,52 @@ def _validated_archive_member(value: str) -> PurePosixPath:
     return path
 
 
+def _strip_approved_musicxml_doctype(payload: bytes) -> bytes:
+    """Allow only MuseScore's exact standard MusicXML 3.1 Partwise declaration.
+
+    The approved PUBLIC declaration is metadata only. It is removed before
+    ElementTree sees the document, so no external DTD resolution is needed or
+    permitted. Every other DOCTYPE form and every ENTITY declaration fails
+    closed.
+    """
+
+    if not isinstance(payload, bytes) or not payload:
+        raise OpenScoreMusicXMLError("MusicXML rootfile is empty")
+    upper = payload.upper()
+    if b"<!ENTITY" in upper:
+        raise OpenScoreMusicXMLError("MusicXML entity declarations are forbidden")
+
+    count = upper.count(b"<!DOCTYPE")
+    if count == 0:
+        return payload
+    if count != 1:
+        raise OpenScoreMusicXMLError("MusicXML must contain at most one approved DOCTYPE")
+
+    start = upper.find(b"<!DOCTYPE")
+    end = payload.find(b">", start)
+    if end < 0:
+        raise OpenScoreMusicXMLError("MusicXML DOCTYPE declaration is malformed")
+    declaration = payload[start : end + 1]
+    if declaration != _APPROVED_MUSICXML31_DOCTYPE:
+        raise OpenScoreMusicXMLError("MusicXML DOCTYPE is not approved")
+
+    prefix = payload[:start]
+    if prefix.startswith(b"\xef\xbb\xbf"):
+        prefix = prefix[3:]
+    prefix = prefix.strip()
+    if prefix:
+        if not (prefix.startswith(b"<?xml") and prefix.endswith(b"?>")):
+            raise OpenScoreMusicXMLError("MusicXML DOCTYPE appears in an unsafe position")
+        if b"?>" in prefix[:-2] or b"<" in prefix[5:-2] or b">" in prefix[5:-2]:
+            raise OpenScoreMusicXMLError("MusicXML declaration before DOCTYPE is malformed")
+
+    sanitized = payload[:start] + payload[end + 1 :]
+    sanitized_upper = sanitized.upper()
+    if b"<!DOCTYPE" in sanitized_upper or b"<!ENTITY" in sanitized_upper:
+        raise OpenScoreMusicXMLError("MusicXML contains an unapproved DTD/entity declaration")
+    return sanitized
+
+
 def _read_rootfile(path: Path, receipt: OpenScoreConversionReceipt) -> bytes:
     if path.is_symlink() or not path.is_file():
         raise OpenScoreMusicXMLError("MXL path must be a regular file")
@@ -434,10 +484,7 @@ def _read_rootfile(path: Path, receipt: OpenScoreConversionReceipt) -> bytes:
     except zipfile.BadZipFile as exc:
         raise OpenScoreMusicXMLError("MXL ZIP structure is malformed") from exc
 
-    upper = payload.upper()
-    if b"<!DOCTYPE" in upper or b"<!ENTITY" in upper:
-        raise OpenScoreMusicXMLError("DTD/entity declarations are forbidden")
-    return payload
+    return _strip_approved_musicxml_doctype(payload)
 
 
 def parse_openscore_mxl(

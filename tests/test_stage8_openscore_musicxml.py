@@ -150,7 +150,7 @@ class Stage8OpenScoreMusicXMLTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "score.mxl"
             receipt = _write_mxl(path, xml)
-            with self.assertRaisesRegex(OpenScoreMusicXMLError, "DTD/entity"):
+            with self.assertRaisesRegex(OpenScoreMusicXMLError, "DOCTYPE is not approved"):
                 parse_openscore_mxl(str(path.resolve()), receipt)
 
     def test_microtonal_alter_is_rejected_in_v0_1(self):
