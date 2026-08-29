@@ -62,12 +62,28 @@ def harmonic_v1_2(*, contexts=None):
     }
 
 
+def harmonic_v1_1():
+    payload = harmonic_v1_2()
+    payload["schema_version"] = "1.1"
+    payload.pop("tonal_context_spans")
+    return payload
+
+
+def harmonic_v1_0():
+    payload = harmonic_v1_1()
+    payload["schema_version"] = "1.0"
+    for current_frame in payload["frames"]:
+        for current_event in current_frame["events"]:
+            current_event.pop("written_pitch")
+    return payload
+
+
 def bridge(harmonic_request=None, request_id="req-001"):
     return {
         "schema_name": MUSIC_API_BRIDGE_SCHEMA_NAME,
         "schema_version": MUSIC_API_BRIDGE_SCHEMA_VERSION,
         "request_id": request_id,
-        "harmonic_request": harmonic_request or harmonic_v1_2(),
+        "harmonic_request": harmonic_request if harmonic_request is not None else harmonic_v1_2(),
     }
 
 
@@ -86,6 +102,23 @@ class MusicApiBridgeTests(unittest.TestCase):
             },
             {(0, "major_sixth"), (9, "minor_seventh")},
         )
+
+    def test_v1_0_v1_1_and_v1_2_dispatch_to_existing_contracts(self):
+        for version, harmonic_request in (
+            ("1.0", harmonic_v1_0()),
+            ("1.1", harmonic_v1_1()),
+            ("1.2", harmonic_v1_2()),
+        ):
+            with self.subTest(version=version):
+                result = execute_music_api_bridge_request(
+                    bridge(harmonic_request, request_id=f"req-{version}")
+                )
+                self.assertEqual(result["request_id"], f"req-{version}")
+                self.assertEqual(result["harmonic_result"]["schema_version"], "1.0")
+                self.assertEqual(
+                    result["harmonic_result"]["results"][0]["decision"]["state"],
+                    "ambiguous",
+                )
 
     def test_explicit_v1_2_tonal_context_remains_bounded_st_evidence(self):
         payload = bridge(
@@ -119,11 +152,16 @@ class MusicApiBridgeTests(unittest.TestCase):
         with self.assertRaises(PublicValidationError):
             execute_music_api_bridge_request(payload)
 
-    def test_unsupported_nested_version_fails_before_execution(self):
-        payload = bridge()
-        payload["harmonic_request"]["schema_version"] = "9.9"
+    def test_unsupported_nested_name_or_version_fails_before_execution(self):
+        wrong_name = bridge()
+        wrong_name["harmonic_request"]["schema_name"] = "provider.harmonic_request"
         with self.assertRaises(MusicApiBridgeValidationError):
-            validate_music_api_bridge_request(payload)
+            validate_music_api_bridge_request(wrong_name)
+
+        wrong_version = bridge()
+        wrong_version["harmonic_request"]["schema_version"] = "9.9"
+        with self.assertRaises(MusicApiBridgeValidationError):
+            validate_music_api_bridge_request(wrong_version)
 
     def test_request_id_is_bounded_and_control_characters_are_rejected(self):
         for request_id in ("", "x" * 129, "bad\nrequest"):
