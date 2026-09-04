@@ -14,6 +14,9 @@ from st_guitar_harmonic_engine.runtime_frame_identity import (
 
 SOURCE_A = "a" * 64
 SOURCE_B = "b" * 64
+EXPECTED_VECTOR_A = (
+    "st-rfi-v1:bf32699f237452f333a7f2132842a893ad5212728abc4840fbb43f1ea6b5cc43"
+)
 
 
 def _event(*, pitch: int, voice: int = 1, duration: int = 2) -> NoteEvent:
@@ -39,6 +42,12 @@ def _frame(events=None, *, end=1) -> HarmonicFrame:
 
 
 class RuntimeFrameIdentityTests(unittest.TestCase):
+    def test_frozen_cross_repo_identity_vector(self):
+        self.assertEqual(
+            runtime_frame_id(_frame(), source_sha256=SOURCE_A),
+            EXPECTED_VECTOR_A,
+        )
+
     def test_identity_is_stable_across_event_tuple_order(self):
         first = _event(pitch=60)
         second = _event(pitch=64, voice=2)
