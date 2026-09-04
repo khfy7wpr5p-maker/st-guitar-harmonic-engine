@@ -38,6 +38,22 @@ schema is unchanged. Stage 2-N is a sidecar identity contract only.
 used by the adapter that produced the runtime frames. It must not be a filename,
 path, request correlation id, teacher label, or model-derived value.
 
+## Canonical algorithm and frozen vector
+
+The identity payload uses schema name
+`st_guitar_harmonic_engine.runtime_frame_identity`, schema version `1.0`, exact
+integer rational fields, canonical event sorting, canonical JSON with sorted keys
+and compact separators, then SHA-256 with the prefix `st-rfi-v1:`.
+
+A frozen cross-repository test vector is included in the unit tests. For source
+SHA-256 `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` and the
+reference two-note frame in `tests/test_runtime_frame_identity.py`, the required
+identity is:
+
+`st-rfi-v1:bf32699f237452f333a7f2132842a893ad5212728abc4840fbb43f1ea6b5cc43`
+
+Stage 2-O must reproduce this vector before any private corpus join is trusted.
+
 ## Trace contract
 
 `build_runtime_frame_identity_trace()` accepts only a `ValidatedPublicRequest` and
